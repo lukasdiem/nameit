@@ -1,0 +1,72 @@
+name: Build APK
+
+# Builds the Android app on every push to main and attaches the APK to a
+# GitHub release, so it can be downloaded and installed straight from the phone.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      # android/ and ios/ are generated here unless they are committed to the repo.
+      - name: Generate platform folders
+        run: |
+          if [ ! -d android ]; then
+            flutter create --platforms=android,ios --org at.namio --project-name namio .
+          fi
+          dart run tool/setup.dart
+
+      # The same signing key on every build lets new versions install over old ones
+      # without uninstalling (which would delete the app's data).
+      - name: Use the stored signing key
+        env:
+          SIGNING_KEYSTORE: ${{ secrets.SIGNING_KEYSTORE }}
+        run: |
+          mkdir -p ~/.android
+          if [ -n "$SIGNING_KEYSTORE" ]; then
+            echo "$SIGNING_KEYSTORE" | base64 -d > ~/.android/debug.keystore
+            echo "Signing with the stored key."
+          else
+            echo "::warning::No SIGNING_KEYSTORE secret – each build gets a new key, so updates need an uninstall first."
+          fi
+
+      - run: flutter pub get
+
+      - name: Analyze (report only)
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+        continue-on-error: true
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Build APK
+        run: |
+          flutter build apk --release --build-number=${{ github.run_number }}
+          mv build/app/outputs/flutter-apk/app-release.apk namio-${{ github.run_number }}.apk
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Namio build ${{ github.run_number }}
+          body: 'Built from ${{ github.sha }}. Download the .apk on your phone and open it to install.'
+          prerelease: true
+          files: namio-${{ github.run_number }}.apk

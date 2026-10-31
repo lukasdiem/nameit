@@ -1,0 +1,29 @@
+name: namio
+description: Learn student names from faces – and faces from names – with small games.
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: '>=3.8.0 <4.0.0'   # Flutter 3.32 or newer
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  provider: ^6.1.2
+  path_provider: ^2.1.4
+  http: ^1.2.2
+  image_picker: ^1.1.2
+  file_picker: ^8.1.2
+  csv: ^6.0.0
+  excel: ^4.0.6
+  flutter_secure_storage: ^9.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
