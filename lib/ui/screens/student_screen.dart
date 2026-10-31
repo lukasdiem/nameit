@@ -100,7 +100,7 @@ class _StudentScreenState extends State<StudentScreen> {
               onPressed: () async {
                 final ok = await confirm(context, title: context.tr('deleteStudentQ', {'name': s!.fullName}));
                 if (ok && context.mounted) {
-                  store.deleteStudent(s!);
+                  store.deleteStudent(s);
                   Navigator.pop(context);
                 }
               },

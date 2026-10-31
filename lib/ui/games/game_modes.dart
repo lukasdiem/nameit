@@ -23,7 +23,7 @@ class GameMode {
     required this.builder,
   });
 
-  /// Translation key prefix: '<key>' = title, '<key>Sub' = subtitle.
+  /// Translation key prefix: `key` = title, `keySub` = subtitle.
   final String key;
   final IconData icon;
   final Color color;

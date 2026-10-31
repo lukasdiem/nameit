@@ -300,7 +300,7 @@ class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClien
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
         child: Column(children: [
           DropdownButtonFormField<int>(
-            value: _year?.id,
+            initialValue: _year?.id,
             decoration: InputDecoration(labelText: context.tr('schoolYear')),
             items: [for (final y in _years) DropdownMenuItem(value: y.id, child: Text(y.name))],
             onChanged: (id) async {
@@ -468,7 +468,7 @@ class _TargetPicker extends StatelessWidget {
         Expanded(
           child: DropdownButtonFormField<String>(
             key: ValueKey('${yearId}_${years.length}'),
-            value: yearId,
+            initialValue: yearId,
             decoration: InputDecoration(labelText: context.tr('schoolYear')),
             items: [for (final y in years) DropdownMenuItem(value: y.id, child: Text(y.name))],
             onChanged: (v) {
