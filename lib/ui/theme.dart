@@ -115,7 +115,7 @@ class AppTheme {
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: scheme.primary,
         foregroundColor: scheme.onPrimary,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        shape: const CircleBorder(),
       ),
       progressIndicatorTheme: ProgressIndicatorThemeData(
         color: scheme.secondary,

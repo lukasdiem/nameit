@@ -34,10 +34,10 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: () => _addMenu(context),
-        icon: const Icon(Icons.add),
-        label: Text(context.tr('add')),
+        tooltip: context.tr('add'),
+        child: const Icon(Icons.add),
       ),
       body: years.isEmpty
           ? _EmptyState(onImport: () => _openImport(context))
