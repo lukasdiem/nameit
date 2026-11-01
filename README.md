@@ -20,6 +20,26 @@ flutter run                                               # with a phone or emul
 
 APK for your phone: `flutter build apk --release` → `build/app/outputs/flutter-apk/app-release.apk`.
 
+## Builds and versions
+
+GitHub Actions (`.github/workflows/build-apk.yml`) runs tests and builds the APK on
+every pull request and every push to `main`.
+
+* **Version name** comes from `version:` in `pubspec.yaml` (e.g. `0.2.0`).
+* **Build number** (Android `versionCode`) is the workflow run number, so it always
+  goes up and new builds install over old ones.
+* Every push to `main` publishes a **pre-release** `v0.2.0-build.42` with the APK.
+* To publish a **release**: bump `version:` in `pubspec.yaml`, merge, then tag:
+
+  ```bash
+  git tag v0.2.0 && git push origin v0.2.0
+  ```
+
+  The build fails if the tag doesn't match `pubspec.yaml`. The release gets
+  auto-generated notes from the merged pull requests and is marked *Latest*.
+* Pull request builds attach the APK as a workflow artifact (kept 14 days) instead
+  of creating a release.
+
 ## What's inside
 
 ```

@@ -26,7 +26,31 @@ ${m[1]}''',
   );
   _setAppName('nameIT');
   _raiseCompileSdk();
+  _speedUpGradle();
   stdout.writeln('Done. Now run: flutter run');
+}
+
+/// Lets Gradle reuse outputs from earlier builds (also across CI runs, where
+/// the Gradle home is cached) and build independent plugin modules in parallel.
+void _speedUpGradle() {
+  const path = 'android/gradle.properties';
+  final f = File(path);
+  if (!f.existsSync()) {
+    stdout.writeln('skip  $path (not found – did you run flutter create?)');
+    return;
+  }
+  var s = f.readAsStringSync();
+  final missing = [
+    'org.gradle.caching=true',
+    'org.gradle.parallel=true',
+  ].where((line) => !s.contains(line.split('=').first));
+  if (missing.isEmpty) {
+    stdout.writeln('ok    $path (already set up)');
+    return;
+  }
+  if (!s.endsWith('\n')) s += '\n';
+  f.writeAsStringSync('$s${missing.join('\n')}\n');
+  stdout.writeln('patched $path (build cache, parallel)');
 }
 
 void _raiseCompileSdk() {
