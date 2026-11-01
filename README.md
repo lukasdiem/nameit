@@ -82,7 +82,10 @@ The logo is a lowercase "n" that is also a person. Icon sources are in
 
 Every answer updates a 0–5 level per student. Games pick weak and
 long-unseen students more often, so practice goes where it's needed.
-XP and a daily streak sit on the home screen.
+XP and a daily streak sit on the home screen; tapping them opens **Stats**: streak and
+record, XP, accuracy, a 14-day activity chart, mastery per class, the students who need
+practice most, and **15 badges** (streaks, perfect rounds, the million, whole class mastered,
+early bird / night owl …). New badges are announced on the result screen.
 
 ## WebUntis
 

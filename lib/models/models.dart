@@ -146,6 +146,7 @@ class GameResult {
     required this.missed,
     this.headline,
     this.starsOverride,
+    this.score,
   });
 
   final String modeTitleKey;
@@ -159,6 +160,10 @@ class GameResult {
 
   /// For games where accuracy isn't the right measure (e.g. Memory moves).
   final int? starsOverride;
+
+  /// Game-specific number used for badges: euros in Millionenshow, points
+  /// in Blitz and Reveal, moves in Memory.
+  final int? score;
 
   double get accuracy => total == 0 ? 0 : correct / total;
   int get stars => starsOverride ?? (accuracy >= 0.9 ? 3 : accuracy >= 0.7 ? 2 : accuracy >= 0.4 ? 1 : 0);

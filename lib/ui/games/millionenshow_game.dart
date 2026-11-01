@@ -105,6 +105,7 @@ class _MillionenshowGameState extends State<MillionenshowGame> {
         xp: _xp,
         missed: _missed,
         headline: _money(amount),
+        score: amount,
       ),
     );
   }

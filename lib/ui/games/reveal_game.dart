@@ -98,6 +98,7 @@ class _RevealGameState extends State<RevealGame> {
             xp: _xp,
             missed: _missed,
             headline: context.tr('nPoints', {'n': _points}),
+            score: _points,
           ));
     } else {
       setState(() {

@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../models/models.dart';
+import 'badges.dart';
 
 /// Single source of truth for the app. Keeps everything in memory and
 /// writes it to one JSON file. Photos live as files in a `photos` folder.
@@ -17,7 +18,17 @@ class AppStore extends ChangeNotifier {
 
   int xp = 0;
   int streak = 0;
+  int bestStreak = 0;
   String? lastPlayedDay; // yyyy-mm-dd
+
+  /// Answers per day: yyyy-mm-dd -> [answers, correct].
+  final Map<String, List<int>> days = {};
+
+  /// Finished games per mode key (e.g. 'gMillion').
+  final Map<String, int> gamesByMode = {};
+
+  /// Unlocked badges: id -> date unlocked (yyyy-mm-dd).
+  final Map<String, String> unlockedBadges = {};
 
   late Directory _docs;
   late Directory photoDir;
@@ -52,6 +63,10 @@ class AppStore extends ChangeNotifier {
         xp = j['xp'] ?? 0;
         streak = j['streak'] ?? 0;
         lastPlayedDay = j['lastPlayedDay'];
+        bestStreak = j['bestStreak'] ?? streak;
+        (j['days'] as Map? ?? {}).forEach((k, v) => days['$k'] = [for (final x in v as List) (x as num).toInt()]);
+        (j['gamesByMode'] as Map? ?? {}).forEach((k, v) => gamesByMode['$k'] = (v as num).toInt());
+        (j['badges'] as Map? ?? {}).forEach((k, v) => unlockedBadges['$k'] = '$v');
       } catch (e) {
         debugPrint('Could not read data file: $e');
       }
@@ -68,6 +83,10 @@ class AppStore extends ChangeNotifier {
       'xp': xp,
       'streak': streak,
       'lastPlayedDay': lastPlayedDay,
+      'bestStreak': bestStreak,
+      'days': days,
+      'gamesByMode': gamesByMode,
+      'badges': unlockedBadges,
     };
     // Write to a temp file first so a crash never leaves a half-written file.
     final tmp = File('${_dataFile.path}.tmp');
@@ -240,6 +259,9 @@ class AppStore extends ChangeNotifier {
       s.wrong++;
       s.level = max(0, s.level - 2);
     }
+    final day = days.putIfAbsent(_day(DateTime.now()), () => [0, 0]);
+    day[0]++;
+    if (correct) day[1]++;
     _touchStreak();
     _changed();
     return correct ? points : 0;
@@ -251,7 +273,53 @@ class AppStore extends ChangeNotifier {
     if (lastPlayedDay == today) return;
     final yesterday = _day(now.subtract(const Duration(days: 1)));
     streak = lastPlayedDay == yesterday ? streak + 1 : 1;
+    bestStreak = max(bestStreak, streak);
     lastPlayedDay = today;
+  }
+
+  // ---------------------------------------------------------------- stats & badges
+
+  int get gamesTotal => gamesByMode.values.fold(0, (a, b) => a + b);
+  int get modesPlayed => gamesByMode.length;
+  int get answersTotal => days.values.fold(0, (a, d) => a + d[0]);
+  int get correctTotal => days.values.fold(0, (a, d) => a + d[1]);
+  int get masteredCount => students.where((s) => s.level >= Student.maxLevel).length;
+
+  /// A class of at least 5 students where everyone is mastered.
+  bool get hasMasteredClass => classes.any((c) {
+        final list = studentsOf(c.id);
+        return list.length >= 5 && list.every((s) => s.level >= Student.maxLevel);
+      });
+
+  /// [answers, correct] for a given day.
+  List<int> dayStats(DateTime d) => days[_day(d)] ?? const [0, 0];
+
+  /// Students that need practice most: low level, many mistakes.
+  List<Student> get weakest {
+    final list = students.where((s) => s.wrong > 0 && s.level < Student.maxLevel).toList()
+      ..sort((a, b) => a.level != b.level ? a.level.compareTo(b.level) : b.wrong.compareTo(a.wrong));
+    return list;
+  }
+
+  /// Counts a finished game and returns badges unlocked by it.
+  List<BadgeDef> recordGame(GameResult r) {
+    gamesByMode[r.modeTitleKey] = (gamesByMode[r.modeTitleKey] ?? 0) + 1;
+    final fresh = checkBadges(r);
+    _changed();
+    return fresh;
+  }
+
+  /// Unlocks every badge whose condition is now met. [r] is the game just
+  /// finished, if any.
+  List<BadgeDef> checkBadges([GameResult? r]) {
+    final fresh = <BadgeDef>[];
+    for (final b in badges) {
+      if (unlockedBadges.containsKey(b.id) || !b.test(this, r)) continue;
+      unlockedBadges[b.id] = _day(DateTime.now());
+      fresh.add(b);
+    }
+    if (fresh.isNotEmpty && r == null) _changed();
+    return fresh;
   }
 
   /// Streak only counts if the last session was today or yesterday.
@@ -312,7 +380,11 @@ class AppStore extends ChangeNotifier {
     }
     xp = 0;
     streak = 0;
+    bestStreak = 0;
     lastPlayedDay = null;
+    days.clear();
+    gamesByMode.clear();
+    unlockedBadges.clear();
     _changed();
   }
 
@@ -322,7 +394,11 @@ class AppStore extends ChangeNotifier {
     students.clear();
     xp = 0;
     streak = 0;
+    bestStreak = 0;
     lastPlayedDay = null;
+    days.clear();
+    gamesByMode.clear();
+    unlockedBadges.clear();
     if (photoDir.existsSync()) {
       await photoDir.delete(recursive: true);
       photoDir.createSync(recursive: true);

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
+import '../../data/app_store.dart';
+import '../../data/badges.dart';
 import '../../l10n/strings.dart';
 import '../../models/models.dart';
 import '../theme.dart';
 import '../widgets/student_photo.dart';
+import '../screens/stats_screen.dart' show BadgeIcon;
 import 'game_modes.dart';
 
 /// Scaffold for all games: close button, title, optional progress bar.
@@ -111,17 +115,27 @@ void finishGame(
   required String classId,
   required List<Student> pool,
 }) {
+  final newBadges = context.read<AppStore>().recordGame(result);
   Navigator.pushReplacement(
     context,
-    MaterialPageRoute(builder: (_) => ResultScreen(result: result, classId: classId, pool: pool)),
+    MaterialPageRoute(
+      builder: (_) => ResultScreen(result: result, classId: classId, pool: pool, newBadges: newBadges),
+    ),
   );
 }
 
 class ResultScreen extends StatelessWidget {
-  const ResultScreen({super.key, required this.result, required this.classId, required this.pool});
+  const ResultScreen({
+    super.key,
+    required this.result,
+    required this.classId,
+    required this.pool,
+    this.newBadges = const [],
+  });
   final GameResult result;
   final String classId;
   final List<Student> pool;
+  final List<BadgeDef> newBadges;
 
   @override
   Widget build(BuildContext context) {
@@ -174,6 +188,35 @@ class ResultScreen extends StatelessWidget {
             _Big(label: context.tr('correct'), value: '${result.correct}/${result.total}'),
             _Big(label: 'XP', value: '+${result.xp}'),
           ]),
+          for (final b in newBadges)
+            Padding(
+              padding: const EdgeInsets.only(top: 14),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.6, end: 1),
+                duration: const Duration(milliseconds: 600),
+                curve: Curves.elasticOut,
+                builder: (ctx, v, child) => Transform.scale(scale: v, child: child),
+                child: Card(
+                  color: b.color.withValues(alpha: 0.10),
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Row(children: [
+                      BadgeIcon(badge: b, unlocked: true, size: 52),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text(context.tr('newBadge'),
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: b.color)),
+                          Text(context.tr(b.titleKey),
+                              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+                          Text(context.tr(b.descKey), style: TextStyle(color: scheme.outline, fontSize: 13)),
+                        ]),
+                      ),
+                    ]),
+                  ),
+                ),
+              ),
+            ),
           if (missed.isNotEmpty) ...[
             const SizedBox(height: 24),
             Text(context.tr('practiceThese'), style: const TextStyle(fontWeight: FontWeight.w700)),

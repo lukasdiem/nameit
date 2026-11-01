@@ -10,6 +10,7 @@ import '../widgets/nameit_logo.dart';
 import 'class_screen.dart';
 import 'import_screen.dart';
 import 'settings_screen.dart';
+import 'stats_screen.dart';
 
 /// School years as sections, classes as cards.
 class HomeScreen extends StatelessWidget {
@@ -24,9 +25,19 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const NameItLockup(),
         actions: [
-          _StatChip(icon: Icons.local_fire_department_rounded, value: '${store.currentStreak}', color: Brand.coral),
-          const SizedBox(width: 6),
-          _StatChip(icon: Icons.star_rounded, value: '${store.xp}', color: Theme.of(context).colorScheme.tertiary),
+          // Tapping the flame or the stars opens the stats and badges.
+          InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StatsScreen())),
+            child: Tooltip(
+              message: context.tr('stats'),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                _StatChip(icon: Icons.local_fire_department_rounded, value: '${store.currentStreak}', color: Brand.coral),
+                const SizedBox(width: 6),
+                _StatChip(icon: Icons.star_rounded, value: '${store.xp}', color: Theme.of(context).colorScheme.tertiary),
+              ]),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             tooltip: context.tr('settings'),

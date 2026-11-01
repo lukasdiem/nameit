@@ -97,6 +97,7 @@ class _BlitzGameState extends State<BlitzGame> {
         xp: _xp,
         missed: _missed,
         headline: context.tr('nPoints', {'n': _score}),
+        score: _score,
       ),
     );
   }

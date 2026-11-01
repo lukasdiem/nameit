@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nameit/services/file_import.dart';
 import 'package:nameit/services/webuntis_service.dart';
 import 'package:nameit/services/untis_mobile_api.dart';
+import 'package:nameit/data/app_store.dart';
+import 'package:nameit/models/models.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -47,5 +49,23 @@ void main() {
     expect(UntisMobileApi.totp(secret, 1111111109 * 1000), 81804);
     expect(UntisMobileApi.totp(secret, 1234567890 * 1000), 5924);
     expect(UntisMobileApi.totp(secret.toLowerCase(), 2000000000 * 1000), 279037);
+  });
+
+  test('Badges unlock from a finished game', () {
+    final store = AppStore();
+    store.gamesByMode['gMillion'] = 1;
+    final fresh = store.checkBadges(GameResult(
+      modeTitleKey: 'gMillion',
+      correct: 15,
+      total: 15,
+      xp: 300,
+      missed: const [],
+      score: 1000000,
+    ));
+    final ids = fresh.map((b) => b.id).toSet();
+    expect(ids, containsAll(['firstGame', 'millionaire', 'perfect']));
+    expect(ids.contains('streak3'), isFalse);
+    // Unlocked badges are not reported twice.
+    expect(store.checkBadges().map((b) => b.id), isNot(contains('millionaire')));
   });
 }

@@ -99,6 +99,7 @@ class _MemoryGameState extends State<MemoryGame> {
         xp: _xp,
         missed: widget.pool.where((s) => _mistakeStudents.contains(s.id)).toList(),
         headline: context.tr('nMoves', {'n': _moves}),
+        score: _moves,
         starsOverride: ratio >= 0.6 ? 3 : ratio >= 0.4 ? 2 : 1,
       ),
     );
