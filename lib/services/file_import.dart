@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:csv/csv.dart';
+// `show`: csv also exports a top-level `excel` codec that would clash with package:excel.
+import 'package:csv/csv.dart' show CsvDecoder;
 import 'package:excel/excel.dart';
 
 /// One parsed row from a CSV/Excel file.
@@ -37,8 +38,8 @@ class FileImporter {
     final firstLine = text.split('\n').first;
     final delimiter = [';', ',', '\t']
         .reduce((a, b) => firstLine.split(a).length >= firstLine.split(b).length ? a : b);
-    final rows = CsvToListConverter(fieldDelimiter: delimiter, eol: '\n', shouldParseNumbers: false)
-        .convert(text.replaceAll('\r\n', '\n'));
+    // dynamicTyping is off by default, so values like "007" stay text.
+    final rows = CsvDecoder(fieldDelimiter: delimiter).convert(text.replaceAll('\r\n', '\n'));
     return rows.map((r) => r.map((c) => c.toString().trim()).toList()).toList();
   }
 

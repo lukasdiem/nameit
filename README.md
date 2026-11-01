@@ -7,7 +7,7 @@ Flutter prototype for Android (iOS-ready). Data is organised as
 
 ## Run it
 
-Requires Flutter 3.32 or newer (`flutter --version`).
+Requires Flutter 3.38 or newer (`flutter --version`).
 
 ```bash
 cd nameit

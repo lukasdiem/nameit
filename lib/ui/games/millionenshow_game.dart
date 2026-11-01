@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import '../../data/app_store.dart';
 import '../../l10n/strings.dart';
 import '../../models/models.dart';
-import '../theme.dart';
 import 'game_common.dart';
 
 /// Photo + four names. One wrong answer ends the run, like the TV show.

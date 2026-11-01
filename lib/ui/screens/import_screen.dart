@@ -62,7 +62,7 @@ class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClien
   List<UntisYear> _years = [];
   UntisYear? _year;
   List<UntisClass> _classes = [];
-  /// 'c<classId>' for a class, 'g<key>' for a lesson shared by classes.
+  /// `c<classId>` for a class, `g<key>` for a lesson shared by classes.
   final Set<String> _selected = {};
   TeachingGroups? _groups;
   bool _groupsLoading = false;
@@ -748,15 +748,14 @@ class _FileTabState extends State<_FileTab> with AutomaticKeepAliveClientMixin {
   }
 
   Future<void> _pick() async {
-    final r = await FilePicker.platform.pickFiles(
+    final f = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: ['csv', 'txt', 'xlsx'],
-      withData: true,
     );
-    final f = r?.files.single;
-    if (f == null || f.bytes == null) return;
+    if (f == null) return;
     try {
-      final parsed = FileImporter.parse(f.name, f.bytes!);
+      final parsed = FileImporter.parse(f.name, await f.readAsBytes());
+      if (!mounted) return;
       setState(() {
         _parsed = parsed;
         _fileName = f.name;

@@ -4,7 +4,7 @@ publish_to: 'none'
 version: 0.1.0+1
 
 environment:
-  sdk: '>=3.8.0 <4.0.0'   # Flutter 3.32 or newer
+  sdk: '>=3.10.1 <4.0.0'   # Flutter 3.38 or newer
 
 dependencies:
   flutter:
@@ -16,16 +16,17 @@ dependencies:
   http: ^1.2.2
   crypto: ^3.0.3
   image_picker: ^1.1.2
-  file_picker: ^8.1.2
-  csv: ^6.0.0
+  file_picker: ^13.3.1
+  csv: ^8.0.0
   excel: ^4.0.6
-  flutter_secure_storage: ^9.2.2
+  # Stay on 10.x for one release: it migrates logins saved by 9.x, which 11.x can't read.
+  flutter_secure_storage: ^10.3.1
   mobile_scanner: ^7.0.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
 
 flutter:
@@ -39,7 +40,7 @@ flutter_launcher_icons:
   ios: true
   image_path: assets/icon/icon.png
   remove_alpha_ios: true
-  min_sdk_android: 21
+  min_sdk_android: 24   # Flutter's own minimum
   adaptive_icon_background: "#7C2AD6"
   adaptive_icon_foreground: assets/icon/icon_foreground.png
   adaptive_icon_monochrome: assets/icon/icon_monochrome.png
