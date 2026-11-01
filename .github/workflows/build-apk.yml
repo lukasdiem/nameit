@@ -125,12 +125,16 @@ jobs:
           SIGNING_KEYSTORE: ${{ secrets.SIGNING_KEYSTORE }}
         run: |
           if [ -n "$SIGNING_KEYSTORE" ]; then
-            echo "$SIGNING_KEYSTORE" | base64 -d > "$RUNNER_TEMP/nameit.keystore"
+            echo "$SIGNING_KEYSTORE" | base64 -d > "$RUNNER_TEMP/nameit.keystore" 2>/dev/null || true
+            # Fail in seconds, not after a 5-minute build, if the secret is incomplete.
+            # Prints only the key's fingerprint, nothing secret.
+            if ! keytool -list -keystore "$RUNNER_TEMP/nameit.keystore" -storepass android -alias androiddebugkey \
+                 | grep "SHA-256"; then
+              echo "::error::The SIGNING_KEYSTORE secret is incomplete or wrong (${#SIGNING_KEYSTORE} characters). Paste the whole text again."
+              exit 1
+            fi
             echo "NAMEIT_KEYSTORE=$RUNNER_TEMP/nameit.keystore" >> "$GITHUB_ENV"
-            echo "Signing with the stored key ($(stat -c%s "$RUNNER_TEMP/nameit.keystore") bytes):"
-            # Shows only key names and fingerprints, nothing secret.
-            keytool -list -v -keystore "$RUNNER_TEMP/nameit.keystore" -storepass android 2>&1 \
-              | grep -E "Keystore type|Alias name|Entry type|SHA256|error|Exception" || true
+            echo "Signing with the stored key."
           elif [ "${{ github.event_name }}" != pull_request ]; then
             echo "::error::No SIGNING_KEYSTORE secret – the APK could not be installed as an update."
             exit 1
