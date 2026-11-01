@@ -127,7 +127,10 @@ jobs:
           if [ -n "$SIGNING_KEYSTORE" ]; then
             echo "$SIGNING_KEYSTORE" | base64 -d > "$RUNNER_TEMP/nameit.keystore"
             echo "NAMEIT_KEYSTORE=$RUNNER_TEMP/nameit.keystore" >> "$GITHUB_ENV"
-            echo "Signing with the stored key."
+            echo "Signing with the stored key ($(stat -c%s "$RUNNER_TEMP/nameit.keystore") bytes):"
+            # Shows only key names and fingerprints, nothing secret.
+            keytool -list -v -keystore "$RUNNER_TEMP/nameit.keystore" -storepass android 2>&1 \
+              | grep -E "Keystore type|Alias name|Entry type|SHA256|error|Exception" || true
           elif [ "${{ github.event_name }}" != pull_request ]; then
             echo "::error::No SIGNING_KEYSTORE secret – the APK could not be installed as an update."
             exit 1
