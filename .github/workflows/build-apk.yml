@@ -96,13 +96,6 @@ jobs:
           distribution: temurin
           java-version: '17'   # matches the Flutter 3.47 Android template (JVM target 17)
 
-      # Caches the Gradle distribution, downloaded dependencies and the Gradle
-      # build cache between runs. Only main writes the cache; PRs read it.
-      - uses: gradle/actions/setup-gradle@v6
-        with:
-          cache-provider: basic   # open-source GitHub Actions cache, no external service
-          add-job-summary: never
-
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -115,6 +108,14 @@ jobs:
             flutter create --platforms=android,ios --org at.nameit --project-name nameit .
           fi
           dart run tool/setup.dart
+
+      # Caches the Gradle distribution, downloaded dependencies and the Gradle
+      # build cache between runs. Only main writes the cache; PRs read it.
+      # Must come after android/ exists: the cache key is built from its Gradle files.
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic   # open-source GitHub Actions cache, no external service
+          add-job-summary: never
 
       # The same signing key on every build lets new versions install over old ones
       # without uninstalling (which would delete the app's data).
