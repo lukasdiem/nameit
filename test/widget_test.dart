@@ -16,6 +16,23 @@ void main() {
     expect(r.rows.first.className, '3B');
   });
 
+  test('CSV with commas, quotes, Windows line endings and BOM', () {
+    final csv = '﻿Nachname,Vorname,Klasse\r\n"Huber, Jr.",Max,3B\r\n"O""Brien",Anna,007\r\n';
+    final r = FileImporter.parse('liste.csv', Uint8List.fromList(utf8.encode(csv)));
+    expect(r.rows.length, 2);
+    expect(r.rows[0].lastName, 'Huber, Jr.');
+    expect(r.rows[0].firstName, 'Max');
+    expect(r.rows[1].lastName, 'O"Brien');
+    expect(r.rows[1].className, '007'); // stays text, not the number 7
+  });
+
+  test('Latin-1 CSV (Excel on German Windows)', () {
+    final csv = 'Klasse;Nachname;Vorname\n4A;Müller;Jürgen\n';
+    final r = FileImporter.parse('liste.csv', Uint8List.fromList(latin1.encode(csv)));
+    expect(r.rows.single.lastName, 'Müller');
+    expect(r.rows.single.firstName, 'Jürgen');
+  });
+
   test('WebUntis login link is parsed', () {
     final p = WebUntisClient.parseLoginUrl('https://nessa.webuntis.com/WebUntis/?school=htl-demo#/basic/login');
     expect(p?.server, 'nessa.webuntis.com');
