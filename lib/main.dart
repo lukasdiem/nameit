@@ -10,11 +10,11 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final store = AppStore();
   await store.load();
-  runApp(ChangeNotifierProvider.value(value: store, child: const NamioApp()));
+  runApp(ChangeNotifierProvider.value(value: store, child: const NameitApp()));
 }
 
-class NamioApp extends StatelessWidget {
-  const NamioApp({super.key});
+class NameitApp extends StatelessWidget {
+  const NameitApp({super.key});
 
   @override
   Widget build(BuildContext context) {

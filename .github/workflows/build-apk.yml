@@ -30,7 +30,7 @@ jobs:
       - name: Generate platform folders
         run: |
           if [ ! -d android ]; then
-            flutter create --platforms=android,ios --org at.namio --project-name namio .
+            flutter create --platforms=android,ios --org at.nameit --project-name nameit .
           fi
           dart run tool/setup.dart
 
@@ -63,13 +63,13 @@ jobs:
       - name: Build APK
         run: |
           flutter build apk --release --build-number=${{ github.run_number }}
-          mv build/app/outputs/flutter-apk/app-release.apk namio-${{ github.run_number }}.apk
+          mv build/app/outputs/flutter-apk/app-release.apk nameit-${{ github.run_number }}.apk
 
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
-          name: Namio build ${{ github.run_number }}
+          name: nameIT build ${{ github.run_number }}
           body: 'Built from ${{ github.sha }}. Download the .apk on your phone and open it to install.'
           prerelease: true
-          files: namio-${{ github.run_number }}.apk
+          files: nameit-${{ github.run_number }}.apk

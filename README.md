@@ -1,4 +1,4 @@
-# nameIT (Namio prototype)
+# nameIT
 
 App to memorize student names with WebUntis import.
 
@@ -10,8 +10,8 @@ Flutter prototype for Android (iOS-ready). Data is organised as
 Requires Flutter 3.32 or newer (`flutter --version`).
 
 ```bash
-cd namio
-flutter create --platforms=android,ios --org at.namio .   # generates android/ and ios/, keeps lib/
+cd nameit
+flutter create --platforms=android,ios --org at.nameit --project-name nameit .   # generates android/ and ios/, keeps lib/
 dart run tool/setup.dart                                  # adds permissions, sets the app name
 flutter pub get
 dart run flutter_launcher_icons                           # app icon for Android + iOS

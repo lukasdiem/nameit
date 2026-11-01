@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:namio/services/file_import.dart';
-import 'package:namio/services/webuntis_service.dart';
-import 'package:namio/services/untis_mobile_api.dart';
+import 'package:nameit/services/file_import.dart';
+import 'package:nameit/services/webuntis_service.dart';
+import 'package:nameit/services/untis_mobile_api.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 
