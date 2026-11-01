@@ -91,7 +91,7 @@ class WebUntisClient {
 
   /// Signs in with username and password.
   Future<void> login(String user, String password) async {
-    final r = await _rpc('authenticate', {'user': user, 'password': password, 'client': 'Namio'});
+    final r = await _rpc('authenticate', {'user': user, 'password': password, 'client': 'nameit'});
     _sessionId = r['sessionId'];
     _user = user;
     _password = password;
@@ -110,7 +110,7 @@ class WebUntisClient {
           uri,
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
-            'id': 'namio',
+            'id': 'nameit',
             'jsonrpc': '2.0',
             'method': 'getUserData2017',
             'params': [

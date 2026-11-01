@@ -23,7 +23,10 @@ class AppStore extends ChangeNotifier {
   late Directory photoDir;
   final _rnd = Random();
 
-  File get _dataFile => File('${_docs.path}/namio_data.json');
+  File get _dataFile => File('${_docs.path}/nameit_data.json');
+
+  /// Name of the data file before the app was renamed to nameIT.
+  File get _legacyDataFile => File('${_docs.path}/namio_data.json');
 
   // ---------------------------------------------------------------- loading
 
@@ -31,6 +34,13 @@ class AppStore extends ChangeNotifier {
     _docs = await getApplicationDocumentsDirectory();
     photoDir = Directory('${_docs.path}/photos');
     if (!photoDir.existsSync()) photoDir.createSync(recursive: true);
+    if (!_dataFile.existsSync() && _legacyDataFile.existsSync()) {
+      try {
+        _legacyDataFile.renameSync(_dataFile.path);
+      } catch (e) {
+        debugPrint('Could not move old data file: $e');
+      }
+    }
 
     if (_dataFile.existsSync()) {
       try {
