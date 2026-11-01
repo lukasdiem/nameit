@@ -3,6 +3,8 @@ import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
+import 'untis_mobile_api.dart';
+
 /// Thin client for WebUntis.
 ///
 /// What is well documented and used here:
@@ -75,9 +77,17 @@ class WebUntisClient {
     return body['result'];
   }
 
+  String? _user, _password;
+
+  /// The mobile-app interface, available after [login].
+  UntisMobileApi get mobile =>
+      UntisMobileApi(host: host, school: school, user: _user ?? '', password: _password ?? '');
+
   Future<void> login(String user, String password) async {
     final r = await _rpc('authenticate', {'user': user, 'password': password, 'client': 'Namio'});
     _sessionId = r['sessionId'];
+    _user = user;
+    _password = password;
     if (_sessionId == null) throw WebUntisException('Login failed');
   }
 

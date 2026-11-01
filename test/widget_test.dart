@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:namio/services/file_import.dart';
 import 'package:namio/services/webuntis_service.dart';
+import 'package:namio/services/untis_mobile_api.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -19,5 +20,15 @@ void main() {
     final p = WebUntisClient.parseLoginUrl('https://nessa.webuntis.com/WebUntis/?school=htl-demo#/basic/login');
     expect(p?.server, 'nessa.webuntis.com');
     expect(p?.school, 'htl-demo');
+  });
+
+  test('Mobile login code matches RFC 6238 test vectors', () {
+    // Secret "12345678901234567890" in Base32; expected codes are the last
+    // six digits of the RFC's 8-digit SHA1 values.
+    const secret = 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ';
+    expect(UntisMobileApi.totp(secret, 59 * 1000), 287082);
+    expect(UntisMobileApi.totp(secret, 1111111109 * 1000), 81804);
+    expect(UntisMobileApi.totp(secret, 1234567890 * 1000), 5924);
+    expect(UntisMobileApi.totp(secret.toLowerCase(), 2000000000 * 1000), 279037);
   });
 }

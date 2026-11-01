@@ -53,9 +53,15 @@ XP and a daily streak sit on the home screen.
 ## WebUntis
 
 * Login, school years, classes: official JSON-RPC API (`authenticate`, `getSchoolyears`, `getKlassen`).
-* Students of a class: the JSON-RPC API has no class membership, so the app reads the
-  student list the WebUntis web timetable uses. If your server doesn't return it, the
-  app falls back to `getStudents` and lets you tick the students of the class.
+* Students of a class, in this order:
+  1. The web timetable's student list (`pageconfig` with `filter.klasseId`). WebUntis only
+     allows this for the class you are Klassenvorstand of, and then gives the full class.
+  2. The Untis Mobile interface (`jsonrpc_intern.do`, as used by the official app and
+     BetterUntis): `getAppSharedSecret` → `getTimetable2017` for your teacher timetable →
+     `getPeriodData2017`, which lists the students of each lesson you teach (the attendance
+     list). Students are grouped by class; lessons shared by several classes become their
+     own group (e.g. "3A + 3B") when the class can't be told apart.
+  3. If neither works: `getStudents` and tick the students by hand.
 * Photos: loaded from `https://<server>/WebUntis/image.do?cat=5&id=<studentId>` with the
   login session. Students without a photo get WebUntis' generic avatar; the app detects it
   and leaves those students without a photo. Settings can override the address if needed.

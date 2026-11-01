@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../data/app_store.dart';
 import '../../l10n/strings.dart';
 import '../../services/file_import.dart';
+import '../../services/untis_mobile_api.dart';
 import '../../services/webuntis_service.dart';
 import '../dialogs.dart';
 import 'home_screen.dart' show defaultYearName;
@@ -61,7 +62,10 @@ class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClien
   List<UntisYear> _years = [];
   UntisYear? _year;
   List<UntisClass> _classes = [];
-  final Set<int> _selected = {};
+  /// 'c<classId>' for a class, 'g<key>' for a lesson shared by classes.
+  final Set<String> _selected = {};
+  TeachingGroups? _groups;
+  bool _groupsLoading = false;
   bool _loadPhotos = true;
 
   double _progress = 0;
@@ -146,13 +150,50 @@ class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClien
     if (_year == null) return;
     _classes = await _client!.classes(_year!.id);
     _selected.clear();
+    _loadGroups();
+  }
+
+  /// Finds the classes the teacher teaches (and their students) through the
+  /// mobile interface, then preselects them.
+  Future<void> _loadGroups() async {
+    final year = _year;
+    if (year == null) return;
+    setState(() {
+      _groupsLoading = true;
+      _groups = null;
+    });
+    TeachingGroups? groups;
+    try {
+      groups = await _client!.mobile.teachingGroups(year.sampleDate);
+    } catch (e) {
+      debugPrint('Teaching groups unavailable: $e');
+    }
+    if (!mounted || _year != year) return;
+    setState(() {
+      _groupsLoading = false;
+      _groups = groups;
+      if (groups != null && _selected.isEmpty) {
+        for (final c in _classes) {
+          if (groups.forClass(c.id) != null) _selected.add('c${c.id}');
+        }
+        for (final g in groups.mixed) {
+          _selected.add('g${g.classIds.join('+')}');
+        }
+      }
+    });
   }
 
   Future<void> _runImport() async {
     final store = context.read<AppStore>();
     final client = _client!;
     final year = _year!;
-    final chosen = _classes.where((c) => _selected.contains(c.id)).toList();
+    // Classes first (in list order), then lessons shared by several classes.
+    final chosen = <({String name, UntisClass? cls, TeachingGroup? group})>[
+      for (final c in _classes)
+        if (_selected.contains('c${c.id}')) (name: c.name, cls: c, group: _groups?.forClass(c.id)),
+      for (final g in _groups?.mixed ?? const <TeachingGroup>[])
+        if (_selected.contains('g${g.classIds.join('+')}')) (name: g.name, cls: null, group: g),
+    ];
     final template = store.settings.photoUrlTemplate;
     final photos = _loadPhotos;
 
@@ -171,31 +212,42 @@ class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClien
       if (!mounted) return;
       setState(() => _status = context.tr('importingClass', {'name': uc.name}));
 
-      List<UntisStudent> roster;
-      try {
-        roster = await client.classStudents(uc.id, year.sampleDate);
-      } on ClassRosterUnavailable {
-        // Fallback: let the teacher pick the students of this class.
+      List<UntisStudent> roster = [];
+      final cls = uc.cls;
+      if (cls == null) {
+        // Lesson shared by several classes: its students come from the lessons.
+        roster = uc.group!.students;
+      } else {
         try {
-          _allStudentsCache ??= await client.allStudents();
-        } catch (_) {
-          _allStudentsCache = [];
-        }
-        if (!mounted) return;
-        if (_allStudentsCache!.isEmpty) {
-          toast(context, context.tr('noRosterAccess'));
-          roster = [];
-        } else {
-          roster = await Navigator.push<List<UntisStudent>>(
-                context,
-                MaterialPageRoute(
-                    builder: (_) => _PickStudentsScreen(className: uc.name, all: _allStudentsCache!)),
-              ) ??
-              [];
+          // Full class list – WebUntis only allows this for your own class.
+          roster = await client.classStudents(cls.id, year.sampleDate);
+        } on ClassRosterUnavailable {
+          if (uc.group != null && uc.group!.students.isNotEmpty) {
+            // Students from the lessons you teach in this class.
+            roster = uc.group!.students;
+          } else {
+            // Last resort: let the teacher pick the students of this class.
+            try {
+              _allStudentsCache ??= await client.allStudents();
+            } catch (_) {
+              _allStudentsCache = [];
+            }
+            if (!mounted) return;
+            if (_allStudentsCache!.isEmpty) {
+              toast(context, context.tr('noRosterAccess'));
+            } else {
+              roster = await Navigator.push<List<UntisStudent>>(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => _PickStudentsScreen(className: cls.name, all: _allStudentsCache!)),
+                  ) ??
+                  [];
+            }
+          }
         }
       }
 
-      final localClass = store.addClass(localYear.id, uc.name, untisId: uc.id);
+      final localClass = store.addClass(localYear.id, uc.name, untisId: uc.cls?.id);
       final photosBefore = _importedPhotos;
       for (var j = 0; j < roster.length; j++) {
         final us = roster[j];
@@ -295,13 +347,27 @@ class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClien
 
   Widget _buildSelect() {
     final q = _filter.text.toLowerCase();
-    final visible = _classes
-        .where((c) => q.isEmpty || c.name.toLowerCase().contains(q) || c.longName.toLowerCase().contains(q))
-        .toList();
+    bool match(String a, [String b = '']) => q.isEmpty || a.toLowerCase().contains(q) || b.toLowerCase().contains(q);
+    final groups = _groups;
+    final mine = _classes.where((c) => groups?.forClass(c.id) != null && match(c.name, c.longName)).toList();
+    final mixed = (groups?.mixed ?? const <TeachingGroup>[]).where((g) => match(g.name)).toList();
+    final others = _classes.where((c) => groups?.forClass(c.id) == null && match(c.name, c.longName)).toList();
+    final scheme = Theme.of(context).colorScheme;
+
+    Widget header(String text) => Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+          child: Text(text, style: TextStyle(fontWeight: FontWeight.w700, color: scheme.primary)),
+        );
+    Widget tile(String key, String title, String? subtitle) => CheckboxListTile(
+          value: _selected.contains(key),
+          onChanged: (v) => setState(() => v! ? _selected.add(key) : _selected.remove(key)),
+          title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+          subtitle: subtitle == null ? null : Text(subtitle),
+        );
 
     return Column(children: [
       Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
         child: Column(children: [
           DropdownButtonFormField<int>(
             initialValue: _year?.id,
@@ -322,18 +388,26 @@ class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClien
         ]),
       ),
       Expanded(
-        child: ListView.builder(
-          itemCount: visible.length,
-          itemBuilder: (ctx, i) {
-            final c = visible[i];
-            return CheckboxListTile(
-              value: _selected.contains(c.id),
-              onChanged: (v) => setState(() => v! ? _selected.add(c.id) : _selected.remove(c.id)),
-              title: Text(c.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-              subtitle: c.longName.isNotEmpty && c.longName != c.name ? Text(c.longName) : null,
-            );
-          },
-        ),
+        child: ListView(children: [
+          if (_groupsLoading)
+            ListTile(
+              leading: const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5)),
+              title: Text(context.tr('findingMyClasses')),
+            ),
+          if (mine.isNotEmpty || mixed.isNotEmpty) ...[
+            header(context.tr('myClasses')),
+            for (final c in mine)
+              tile('c${c.id}', c.name,
+                  context.tr('taughtStudents', {'n': groups!.forClass(c.id)!.students.length})),
+            for (final g in mixed)
+              tile('g${g.classIds.join('+')}', g.name, context.tr('sharedLesson', {'n': g.students.length})),
+          ],
+          if (others.isNotEmpty) ...[
+            if (mine.isNotEmpty || mixed.isNotEmpty) header(context.tr('otherClasses')),
+            for (final c in others)
+              tile('c${c.id}', c.name, c.longName.isNotEmpty && c.longName != c.name ? c.longName : null),
+          ],
+        ]),
       ),
       SafeArea(
         child: Padding(
@@ -348,7 +422,7 @@ class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClien
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: _selected.isEmpty ? null : _runImport,
+                onPressed: _selected.isEmpty || _groupsLoading ? null : _runImport,
                 child: Text(context.tr('importNClasses', {'n': _selected.length})),
               ),
             ),
