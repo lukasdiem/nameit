@@ -5,6 +5,8 @@ import '../../data/app_store.dart';
 import '../../l10n/strings.dart';
 import '../../models/models.dart';
 import '../dialogs.dart';
+import '../theme.dart';
+import '../widgets/nameit_logo.dart';
 import 'class_screen.dart';
 import 'import_screen.dart';
 import 'settings_screen.dart';
@@ -20,11 +22,11 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Namio'),
+        title: const NameItLockup(),
         actions: [
-          _StatChip(icon: Icons.local_fire_department_rounded, value: '${store.currentStreak}', color: Colors.deepOrange),
+          _StatChip(icon: Icons.local_fire_department_rounded, value: '${store.currentStreak}', color: Brand.coral),
           const SizedBox(width: 6),
-          _StatChip(icon: Icons.star_rounded, value: '${store.xp}', color: Colors.amber.shade700),
+          _StatChip(icon: Icons.star_rounded, value: '${store.xp}', color: Theme.of(context).colorScheme.tertiary),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             tooltip: context.tr('settings'),
@@ -217,14 +219,14 @@ class _ClassCard extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(cls.name, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
+            Text(cls.name, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: scheme.primary)),
             Text(context.tr('nStudents', {'n': count}), style: TextStyle(color: scheme.outline)),
             const Spacer(),
             Row(children: [
               Expanded(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(6),
-                  child: LinearProgressIndicator(value: m, minHeight: 8, backgroundColor: scheme.outlineVariant),
+                  child: LinearProgressIndicator(value: m, minHeight: 8),
                 ),
               ),
               const SizedBox(width: 8),
@@ -246,8 +248,8 @@ class _EmptyState extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(32),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Icon(Icons.face_retouching_natural, size: 72, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(height: 16),
+            const NameItLogo(size: 96),
+            const SizedBox(height: 20),
             Text(context.tr('welcomeTitle'),
                 textAlign: TextAlign.center, style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 8),

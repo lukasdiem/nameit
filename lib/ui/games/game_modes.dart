@@ -4,6 +4,9 @@ import 'package:provider/provider.dart';
 import '../../data/app_store.dart';
 import '../../l10n/strings.dart';
 import '../../models/models.dart';
+
+// Game colours: the brand palette plus a few neighbours, all of similar
+// strength so no game looks more important than another.
 import 'blitz_game.dart';
 import 'flashcards_game.dart';
 import 'face_finder_game.dart';
@@ -35,49 +38,49 @@ final gameModes = <GameMode>[
   GameMode(
     key: 'gMillion',
     icon: Icons.emoji_events_rounded,
-    color: const Color(0xFF3949AB),
+    color: const Color(0xFFD98E00),
     minStudents: 4,
     builder: (c, p) => MillionenshowGame(classId: c, pool: p),
   ),
   GameMode(
     key: 'gMemory',
     icon: Icons.grid_view_rounded,
-    color: const Color(0xFF00897B),
+    color: const Color(0xFF0E9F74),
     minStudents: 3,
     builder: (c, p) => MemoryGame(classId: c, pool: p),
   ),
   GameMode(
     key: 'gFinder',
     icon: Icons.person_search_rounded,
-    color: const Color(0xFF8E24AA),
+    color: const Color(0xFF7C2AD6),
     minStudents: 4,
     builder: (c, p) => FaceFinderGame(classId: c, pool: p),
   ),
   GameMode(
     key: 'gBlitz',
     icon: Icons.bolt_rounded,
-    color: const Color(0xFFF4511E),
+    color: const Color(0xFFE5484D),
     minStudents: 2,
     builder: (c, p) => BlitzGame(classId: c, pool: p),
   ),
   GameMode(
     key: 'gReveal',
     icon: Icons.blur_on_rounded,
-    color: const Color(0xFF6D4C41),
+    color: const Color(0xFF5B5FE0),
     minStudents: 4,
     builder: (c, p) => RevealGame(classId: c, pool: p),
   ),
   GameMode(
     key: 'gType',
     icon: Icons.keyboard_rounded,
-    color: const Color(0xFF1E88E5),
+    color: const Color(0xFF2A8BD6),
     minStudents: 1,
     builder: (c, p) => TypeGame(classId: c, pool: p),
   ),
   GameMode(
     key: 'gCards',
     icon: Icons.style_rounded,
-    color: const Color(0xFF43A047),
+    color: const Color(0xFFC2409A),
     minStudents: 1,
     builder: (c, p) => FlashcardsGame(classId: c, pool: p),
   ),

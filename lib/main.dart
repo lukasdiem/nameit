@@ -20,7 +20,7 @@ class NamioApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final localeSetting = context.select<AppStore, String>((s) => s.settings.locale);
     return MaterialApp(
-      title: 'Namio',
+      title: 'nameIT',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
