@@ -77,18 +77,75 @@ class WebUntisClient {
     return body['result'];
   }
 
-  String? _user, _password;
+  String? _user, _password, _secret;
+  UntisMobileApi? _mobile;
 
-  /// The mobile-app interface, available after [login].
-  UntisMobileApi get mobile =>
-      UntisMobileApi(host: host, school: school, user: _user ?? '', password: _password ?? '');
+  /// The mobile-app interface, available after logging in.
+  UntisMobileApi get mobile => _mobile ??= UntisMobileApi(
+        host: host,
+        school: school,
+        user: _user ?? '',
+        password: _password ?? '',
+        secret: _secret,
+      );
 
+  /// Signs in with username and password.
   Future<void> login(String user, String password) async {
     final r = await _rpc('authenticate', {'user': user, 'password': password, 'client': 'Namio'});
     _sessionId = r['sessionId'];
     _user = user;
     _password = password;
+    _mobile = null;
     if (_sessionId == null) throw WebUntisException('Login failed');
+  }
+
+  /// Signs in with the app key from the WebUntis QR code (or a key stored
+  /// after an earlier login). A successful call opens a normal web session,
+  /// so everything else (classes, students, photos) works as after [login].
+  Future<void> loginWithSecret(String user, String secret) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final uri = Uri.https(host, '/WebUntis/jsonrpc_intern.do', {'m': 'getUserData2017', 'school': school, 'v': 'i2.2'});
+    final res = await http
+        .post(
+          uri,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'id': 'namio',
+            'jsonrpc': '2.0',
+            'method': 'getUserData2017',
+            'params': [
+              {
+                'auth': {'clientTime': now, 'user': user, 'otp': UntisMobileApi.totp(secret, now)},
+              },
+            ],
+          }),
+        )
+        .timeout(const Duration(seconds: 20));
+    if (res.statusCode != 200) throw WebUntisException('HTTP ${res.statusCode}');
+    final body = jsonDecode(utf8.decode(res.bodyBytes));
+    if (body is Map && body['error'] != null) {
+      final err = body['error'];
+      throw WebUntisException(err is Map ? '${err['message']} (${err['code']})' : '$err',
+          code: err is Map ? err['code'] : null);
+    }
+    final session = RegExp(r'JSESSIONID=([^;,\s]+)').firstMatch(res.headers['set-cookie'] ?? '')?.group(1);
+    if (session == null) throw WebUntisException('No session');
+    _sessionId = session;
+    _user = user;
+    _secret = secret;
+    _password = null;
+    _mobile = null;
+  }
+
+  /// The app key for automatic sign-in later, so the password needn't be
+  /// stored. Null if the server doesn't hand it out.
+  Future<String?> appSecret() async {
+    if (_secret != null) return _secret;
+    try {
+      return _secret = await mobile.secret();
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> logout() async {

@@ -1,18 +1,16 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 
 import '../../data/app_store.dart';
 import '../../l10n/strings.dart';
 import '../../services/file_import.dart';
+import '../../services/untis_credentials.dart';
 import '../../services/untis_mobile_api.dart';
 import '../../services/webuntis_service.dart';
 import '../dialogs.dart';
 import 'home_screen.dart' show defaultYearName;
-
-const _secure = FlutterSecureStorage();
-const _pwKey = 'untis_password';
+import 'qr_scan_screen.dart';
 
 class ImportScreen extends StatelessWidget {
   const ImportScreen({super.key});
@@ -38,7 +36,10 @@ class ImportScreen extends StatelessWidget {
 // WebUntis
 // =====================================================================
 
-enum _Step { login, select, running, done }
+/// connecting: automatic sign-in with the stored login
+/// start:      first time – scan the QR code (or use a password)
+/// password:   username + password form
+enum _Step { connecting, start, password, select, running, done }
 
 class _WebUntisTab extends StatefulWidget {
   const _WebUntisTab();
@@ -47,18 +48,17 @@ class _WebUntisTab extends StatefulWidget {
 }
 
 class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClientMixin {
-  final _link = TextEditingController();
   final _server = TextEditingController();
   final _school = TextEditingController();
   final _user = TextEditingController();
   final _pw = TextEditingController();
   final _filter = TextEditingController();
-  bool _remember = false;
   bool _busy = false;
   String? _error;
 
-  _Step _step = _Step.login;
+  _Step _step = _Step.connecting;
   WebUntisClient? _client;
+  String _account = '';
   List<UntisYear> _years = [];
   UntisYear? _year;
   List<UntisClass> _classes = [];
@@ -84,66 +84,121 @@ class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClien
     _server.text = s.untisServer;
     _school.text = s.untisSchool;
     _user.text = s.untisUser;
-    _remember = s.rememberPassword;
-    if (_remember) {
-      _secure.read(key: _pwKey).then((v) {
-        if (v != null && mounted) setState(() => _pw.text = v);
-      });
-    }
-    _link.addListener(() {
-      final parsed = WebUntisClient.parseLoginUrl(_link.text);
-      if (parsed != null) {
-        _server.text = parsed.server;
-        if (parsed.school.isNotEmpty) _school.text = parsed.school;
-      }
+    // A pasted WebUntis link fills in server and school.
+    _server.addListener(() {
+      if (!_server.text.contains('://')) return;
+      final parsed = WebUntisClient.parseLoginUrl(_server.text);
+      if (parsed == null) return;
+      if (parsed.school.isNotEmpty) _school.text = parsed.school;
+      _server.text = parsed.server;
     });
+    _autoLogin();
   }
 
   @override
   void dispose() {
     _client?.logout();
-    for (final c in [_link, _server, _school, _user, _pw, _filter]) {
+    for (final c in [_server, _school, _user, _pw, _filter]) {
       c.dispose();
     }
     super.dispose();
   }
 
-  Future<void> _connect() async {
+  // ------------------------------------------------------------ sign-in
+
+  Future<void> _autoLogin() async {
+    final creds = await UntisCredentials.load();
+    if (!mounted) return;
+    if (creds == null) {
+      setState(() => _step = _Step.start);
+      return;
+    }
+    final ok = await _signIn(creds);
+    if (!ok && mounted) {
+      setState(() {
+        _step = _Step.start;
+        _error = context.tr('autoLoginFailed');
+      });
+    }
+  }
+
+  Future<void> _scanQr() async {
+    final creds = await Navigator.push<UntisCredentials>(
+      context,
+      MaterialPageRoute(builder: (_) => const QrScanScreen()),
+    );
+    if (creds == null || !mounted) return;
+    final previous = _step;
+    setState(() {
+      _step = _Step.connecting;
+      _error = null;
+    });
+    if (!await _signIn(creds) && mounted) setState(() => _step = previous);
+  }
+
+  Future<void> _passwordLogin() async {
     setState(() {
       _busy = true;
       _error = null;
     });
+    await _signIn(UntisCredentials(
+      server: WebUntisClient.normalizeHost(_server.text),
+      school: _school.text.trim(),
+      user: _user.text.trim(),
+      password: _pw.text,
+    ));
+    if (mounted) setState(() => _busy = false);
+  }
+
+  /// Signs in, stores the login for next time and opens the class list.
+  /// Returns false (and sets [_error]) when it fails.
+  Future<bool> _signIn(UntisCredentials creds) async {
     final store = context.read<AppStore>();
     try {
-      final client = WebUntisClient(server: _server.text, school: _school.text.trim());
-      await client.login(_user.text.trim(), _pw.text);
+      final client = WebUntisClient(server: creds.server, school: creds.school);
+      if (creds.secret != null) {
+        await client.loginWithSecret(creds.user, creds.secret!);
+      } else {
+        await client.login(creds.user, creds.password ?? '');
+      }
+      // Keep only the app key when the server hands it out, not the password.
+      final secret = await client.appSecret();
+      await (secret != null ? creds.copyWith(secret: secret) : creds).save();
       store.updateSettings((s) {
         s.untisServer = client.host;
         s.untisSchool = client.school;
-        s.untisUser = _user.text.trim();
-        s.rememberPassword = _remember;
+        s.untisUser = creds.user;
       });
-      if (_remember) {
-        await _secure.write(key: _pwKey, value: _pw.text);
-      } else {
-        await _secure.delete(key: _pwKey);
-      }
+
       final years = await client.schoolYears();
       final current = await client.currentSchoolYear();
       _client = client;
+      _account = '${creds.user} · ${client.school}';
       _years = years;
       _year = years.where((y) => y.id == current?.id).firstOrNull ?? (years.isNotEmpty ? years.first : null);
       await _loadClasses();
       if (mounted) setState(() => _step = _Step.select);
+      return true;
     } on WebUntisException catch (e) {
-      if (!mounted) return;
-      setState(() => _error = e.isBadCredentials ? context.tr('badLogin') : '${context.tr('connectError')} ($e)');
+      if (mounted) {
+        setState(() => _error = e.isBadCredentials ? context.tr('badLogin') : '${context.tr('connectError')} ($e)');
+      }
     } catch (e) {
-      if (!mounted) return;
-      setState(() => _error = '${context.tr('connectError')} ($e)');
-    } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted) setState(() => _error = '${context.tr('connectError')} ($e)');
     }
+    return false;
+  }
+
+  Future<void> _signOut() async {
+    await UntisCredentials.clear();
+    _client?.logout();
+    if (!mounted) return;
+    setState(() {
+      _client = null;
+      _pw.clear();
+      _error = null;
+      _step = _Step.start;
+    });
   }
 
   Future<void> _loadClasses() async {
@@ -280,35 +335,102 @@ class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClien
   Widget build(BuildContext context) {
     super.build(context);
     return switch (_step) {
-      _Step.login => _buildLogin(),
+      _Step.connecting => _buildConnecting(),
+      _Step.start => _buildStart(),
+      _Step.password => _buildPassword(),
       _Step.select => _buildSelect(),
       _Step.running => _buildRunning(),
       _Step.done => _buildDone(),
     };
   }
 
-  Widget _buildLogin() => ListView(padding: const EdgeInsets.all(20), children: [
-        Text(context.tr('untisIntro')),
-        const SizedBox(height: 16),
-        TextField(
-          controller: _link,
-          keyboardType: TextInputType.url,
-          decoration: InputDecoration(
-            labelText: context.tr('untisLink'),
-            hintText: 'https://….webuntis.com/WebUntis/?school=…',
-            prefixIcon: const Icon(Icons.link),
+  Widget _buildConnecting() => Center(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const CircularProgressIndicator(),
+          const SizedBox(height: 16),
+          Text(context.tr('connecting')),
+        ]),
+      );
+
+  Widget _errorText() => _error == null
+      ? const SizedBox.shrink()
+      : Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Text(_error!,
+              textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        );
+
+  /// First time: one big button to scan the QR code from WebUntis.
+  Widget _buildStart() {
+    final scheme = Theme.of(context).colorScheme;
+    final muted = TextStyle(color: scheme.outline);
+    return ListView(padding: const EdgeInsets.fromLTRB(24, 32, 24, 24), children: [
+      Icon(Icons.qr_code_2_rounded, size: 88, color: scheme.primary),
+      const SizedBox(height: 16),
+      Text(context.tr('qrTitle'),
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+      const SizedBox(height: 20),
+      for (final (i, step) in [context.tr('qrStep1'), context.tr('qrStep2'), context.tr('qrStep3')].indexed)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            CircleAvatar(
+              radius: 12,
+              backgroundColor: scheme.primaryContainer,
+              child: Text('${i + 1}',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: scheme.onPrimaryContainer)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(child: Text(step)),
+          ]),
+        ),
+      const SizedBox(height: 20),
+      _errorText(),
+      FilledButton.icon(
+        onPressed: _scanQr,
+        icon: const Icon(Icons.qr_code_scanner_rounded),
+        label: Text(context.tr('scanQr')),
+      ),
+      const SizedBox(height: 8),
+      TextButton(
+        onPressed: () => setState(() {
+          _error = null;
+          _step = _Step.password;
+        }),
+        child: Text(context.tr('usePassword')),
+      ),
+      const SizedBox(height: 16),
+      Text(context.tr('privacyNote'), textAlign: TextAlign.center, style: muted.copyWith(fontSize: 12)),
+    ]);
+  }
+
+  /// Alternative: username and password.
+  Widget _buildPassword() => ListView(padding: const EdgeInsets.all(24), children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            onPressed: () => setState(() {
+              _error = null;
+              _step = _Step.start;
+            }),
+            icon: const Icon(Icons.arrow_back),
+            label: Text(context.tr('scanQrInstead')),
           ),
         ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _server,
+          keyboardType: TextInputType.url,
+          autocorrect: false,
+          decoration: InputDecoration(labelText: context.tr('server'), hintText: 'xyz.webuntis.com'),
+        ),
         const SizedBox(height: 12),
-        Row(children: [
-          Expanded(
-            child: TextField(controller: _server, decoration: InputDecoration(labelText: context.tr('server'))),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: TextField(controller: _school, decoration: InputDecoration(labelText: context.tr('school'))),
-          ),
-        ]),
+        TextField(
+          controller: _school,
+          autocorrect: false,
+          decoration: InputDecoration(labelText: context.tr('school')),
+        ),
         const SizedBox(height: 12),
         TextField(
           controller: _user,
@@ -320,29 +442,18 @@ class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClien
           controller: _pw,
           obscureText: true,
           decoration: InputDecoration(labelText: context.tr('password')),
-          onSubmitted: (_) => _connect(),
+          onSubmitted: (_) => _passwordLogin(),
         ),
-        CheckboxListTile(
-          contentPadding: EdgeInsets.zero,
-          value: _remember,
-          onChanged: (v) => setState(() => _remember = v ?? false),
-          title: Text(context.tr('rememberPw')),
-          controlAffinity: ListTileControlAffinity.leading,
-        ),
-        if (_error != null)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-          ),
+        const SizedBox(height: 20),
+        _errorText(),
         FilledButton(
-          onPressed: _busy ? null : _connect,
+          onPressed: _busy ? null : _passwordLogin,
           child: _busy
               ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5))
-              : Text(context.tr('connect')),
+              : Text(context.tr('signIn')),
         ),
-        const SizedBox(height: 16),
-        Text(context.tr('privacyNote'),
-            style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.outline)),
+        const SizedBox(height: 12),
+        Text(context.tr('serverHint'), style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.outline)),
       ]);
 
   Widget _buildSelect() {
@@ -367,7 +478,16 @@ class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClien
 
     return Column(children: [
       Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+        padding: const EdgeInsets.fromLTRB(16, 4, 4, 0),
+        child: Row(children: [
+          Icon(Icons.verified_user_outlined, size: 18, color: scheme.primary),
+          const SizedBox(width: 8),
+          Expanded(child: Text(_account, overflow: TextOverflow.ellipsis, style: TextStyle(color: scheme.outline))),
+          TextButton(onPressed: _signOut, child: Text(context.tr('signOut'))),
+        ]),
+      ),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
         child: Column(children: [
           DropdownButtonFormField<int>(
             initialValue: _year?.id,

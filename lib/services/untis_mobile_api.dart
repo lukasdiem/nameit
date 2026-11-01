@@ -16,7 +16,13 @@ import 'webuntis_service.dart';
 /// attendance check in the app shows), so we collect students lesson by
 /// lesson and group them by class.
 class UntisMobileApi {
-  UntisMobileApi({required this.host, required this.school, required this.user, required this.password});
+  UntisMobileApi({
+    required this.host,
+    required this.school,
+    required this.user,
+    required this.password,
+    String? secret,
+  }) : _secret = secret;
 
   final String host;
   final String school;
@@ -50,12 +56,19 @@ class UntisMobileApi {
     return body['result'];
   }
 
-  /// One-time code the mobile interface expects with every call.
-  Future<Map<String, dynamic>> _auth() async {
+  /// The app key (same as in the WebUntis QR code). Fetched once with the
+  /// password unless it was given to the constructor.
+  Future<String> secret() async {
     _secret ??= (await _call('getAppSharedSecret', {'userName': user, 'password': password}))?.toString();
     if (_secret == null || _secret!.isEmpty) throw WebUntisException('No app secret');
+    return _secret!;
+  }
+
+  /// One-time code the mobile interface expects with every call.
+  Future<Map<String, dynamic>> _auth() async {
+    final key = await secret();
     final now = DateTime.now().millisecondsSinceEpoch;
-    return {'user': user, 'otp': totp(_secret!, now), 'clientTime': now};
+    return {'user': user, 'otp': totp(key, now), 'clientTime': now};
   }
 
   /// Students the logged-in teacher teaches around [around], grouped by

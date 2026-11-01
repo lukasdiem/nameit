@@ -67,8 +67,10 @@ XP and a daily streak sit on the home screen.
   and leaves those students without a photo. Settings can override the address if needed.
 * Camera / gallery always works as a fallback, per student.
 
-The password is only stored (in the Android Keystore / iOS Keychain) if you tick
-*remember password*.
+Sign-in: scan the QR code from WebUntis (Profil → Freigaben → Zugriff über Untis Mobile →
+Anzeigen) or use username and password. After the first successful sign-in the app keeps
+only the app key (the one inside the QR code) in the Android Keystore / iOS Keychain and
+signs in automatically; if that fails it shows the first-time page again. *Sign out* deletes it.
 
 ## Privacy
 
