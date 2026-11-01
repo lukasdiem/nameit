@@ -68,6 +68,7 @@ class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClien
   String _status = '';
   List<UntisStudent>? _allStudentsCache;
   int _importedStudents = 0, _importedPhotos = 0;
+  final List<({String name, int students, int photos})> _summary = [];
 
   @override
   bool get wantKeepAlive => true;
@@ -160,6 +161,7 @@ class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClien
       _progress = 0;
       _importedStudents = 0;
       _importedPhotos = 0;
+      _summary.clear();
     });
 
     final localYear = store.addYear(year.name, untisId: year.id);
@@ -194,6 +196,7 @@ class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClien
       }
 
       final localClass = store.addClass(localYear.id, uc.name, untisId: uc.id);
+      final photosBefore = _importedPhotos;
       for (var j = 0; j < roster.length; j++) {
         final us = roster[j];
         final s = store.upsertStudent(
@@ -215,6 +218,7 @@ class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClien
         }
         if (mounted) setState(() => _progress = (i + (j + 1) / roster.length) / chosen.length);
       }
+      _summary.add((name: uc.name, students: roster.length, photos: _importedPhotos - photosBefore));
       store.commit();
     }
     if (mounted) setState(() => _step = _Step.done);
@@ -365,18 +369,34 @@ class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClien
         ),
       );
 
-  Widget _buildDone() => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Icon(Icons.check_circle_rounded, size: 72, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(height: 16),
-            Text(context.tr('importDone', {'n': _importedStudents, 'p': _importedPhotos}), textAlign: TextAlign.center),
-            const SizedBox(height: 24),
-            FilledButton(onPressed: () => Navigator.pop(context), child: Text(context.tr('done'))),
-          ]),
-        ),
-      );
+  Widget _buildDone() {
+    final scheme = Theme.of(context).colorScheme;
+    return ListView(padding: const EdgeInsets.all(24), children: [
+      Icon(Icons.check_circle_rounded, size: 72, color: scheme.primary),
+      const SizedBox(height: 16),
+      Text(context.tr('importDone', {'n': _importedStudents, 'p': _importedPhotos}), textAlign: TextAlign.center),
+      const SizedBox(height: 20),
+      Card(
+        child: Column(children: [
+          for (final c in _summary)
+            ListTile(
+              dense: true,
+              leading: Icon(
+                c.students == 0 ? Icons.warning_amber_rounded : Icons.groups_outlined,
+                color: c.students == 0 ? scheme.error : scheme.primary,
+              ),
+              title: Text(c.name, style: const TextStyle(fontWeight: FontWeight.w700)),
+              trailing: Text(
+                context.tr('classSummary', {'n': c.students, 'p': c.photos}),
+                style: TextStyle(color: c.students == 0 ? scheme.error : null),
+              ),
+            ),
+        ]),
+      ),
+      const SizedBox(height: 24),
+      FilledButton(onPressed: () => Navigator.pop(context), child: Text(context.tr('done'))),
+    ]);
+  }
 }
 
 /// Fallback when WebUntis doesn't tell us who is in a class.

@@ -116,25 +116,30 @@ class WebUntisClient {
   }
 
   /// Students of one class. The JSON-RPC API has no class membership, so
-  /// this uses the timetable page config the web UI uses for the student
-  /// timetable, which lists students with their class id.
+  /// this uses the student-timetable page config of the WebUntis web UI.
+  /// That list is filtered by class: without `filter.klasseId` the server
+  /// answers with a default class only, so every request names the class.
   /// Throws [ClassRosterUnavailable] when the server doesn't provide it.
   Future<List<UntisStudent>> classStudents(int classId, DateTime date) async {
     final d = '${date.year}-${_two(date.month)}-${_two(date.day)}';
     final uri = Uri.https(host, '/WebUntis/api/public/timetable/weekly/pageconfig', {
       'type': '5',
+      'id': '0',
       'date': d,
       'isMyTimetableSelected': 'false',
+      'filter.klasseId': '$classId',
     });
     try {
       final res = await http.get(uri, headers: _cookies).timeout(const Duration(seconds: 20));
       if (res.statusCode != 200) throw ClassRosterUnavailable();
       final body = jsonDecode(utf8.decode(res.bodyBytes));
-      final elements = (body['data']?['elements'] as List?) ?? const [];
-      if (elements.isEmpty || elements.first is! Map || !(elements.first as Map).containsKey('klasseId')) {
+      final elements = ((body['data']?['elements'] as List?) ?? const []).whereType<Map>().toList();
+      // Without a class id on each entry we can't be sure the list is
+      // really this class, so we don't guess.
+      if (elements.isEmpty || !elements.first.containsKey('klasseId')) {
         throw ClassRosterUnavailable();
       }
-      return elements
+      final students = elements
           .where((e) => e['klasseId'] == classId)
           .map((e) => UntisStudent(
                 id: e['id'],
@@ -142,6 +147,10 @@ class WebUntisClient {
                 lastName: (e['longName'] ?? e['name'] ?? '').toString(),
               ))
           .toList();
+      // The server ignored the filter and sent another class: never import
+      // an empty class silently.
+      if (students.isEmpty) throw ClassRosterUnavailable();
+      return students;
     } on ClassRosterUnavailable {
       rethrow;
     } catch (_) {
