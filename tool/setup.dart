@@ -25,6 +25,7 @@ void main() {
 ${m[1]}''',
   );
   _setAppName('nameIT');
+  _releaseSigning();
   _raiseCompileSdk();
   _speedUpGradle();
   stdout.writeln('Done. Now run: flutter run');
@@ -91,6 +92,50 @@ subprojects { sp ->
     return;
   }
   stdout.writeln('skip  android/build.gradle(.kts) (not found – did you run flutter create?)');
+}
+
+/// Signs release builds with a fixed key when NAMEIT_KEYSTORE points to one.
+///
+/// Android only installs an update over an existing app if both are signed
+/// with the same key. Flutter's template signs release builds with the debug
+/// key, which the build machine creates anew for every build – so no update
+/// could ever install. The keystore path comes from the environment at build
+/// time; without it, local builds keep using the debug key.
+void _releaseSigning() {
+  const path = 'android/app/build.gradle.kts';
+  final f = File(path);
+  if (!f.existsSync()) {
+    stderr.writeln('error $path not found – release signing not set up');
+    exit(1);
+  }
+  var s = f.readAsStringSync();
+  if (s.contains('NAMEIT_KEYSTORE')) {
+    stdout.writeln('ok    $path (release signing already set up)');
+    return;
+  }
+  const debugLine = 'signingConfig = signingConfigs.getByName("debug")';
+  final androidBlock = RegExp(r'^android \{\n', multiLine: true);
+  if (!s.contains(debugLine) || !androidBlock.hasMatch(s)) {
+    stderr.writeln('error $path has an unexpected layout – release signing not set up');
+    exit(1);
+  }
+  s = s.replaceFirst(androidBlock, '''android {
+    // nameIT: fixed release key (see tool/setup.dart).
+    signingConfigs {
+        System.getenv("NAMEIT_KEYSTORE")?.takeIf { it.isNotBlank() }?.let { path ->
+            create("nameit") {
+                storeFile = file(path)
+                storePassword = System.getenv("NAMEIT_KEYSTORE_PASSWORD") ?: "android"
+                keyAlias = System.getenv("NAMEIT_KEY_ALIAS") ?: "androiddebugkey"
+                keyPassword = System.getenv("NAMEIT_KEY_PASSWORD") ?: "android"
+            }
+        }
+    }
+
+''');
+  s = s.replaceFirst(debugLine, 'signingConfig = signingConfigs.findByName("nameit") ?: signingConfigs.getByName("debug")');
+  f.writeAsStringSync(s);
+  stdout.writeln('patched $path (release signing)');
 }
 
 /// The name shown under the icon on the home screen.

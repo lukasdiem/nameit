@@ -118,17 +118,21 @@ jobs:
           add-job-summary: never
 
       # The same signing key on every build lets new versions install over old ones
-      # without uninstalling (which would delete the app's data).
+      # without uninstalling (which would delete the app's data). tool/setup.dart
+      # makes release builds use the key from NAMEIT_KEYSTORE.
       - name: Use the stored signing key
         env:
           SIGNING_KEYSTORE: ${{ secrets.SIGNING_KEYSTORE }}
         run: |
-          mkdir -p ~/.android
           if [ -n "$SIGNING_KEYSTORE" ]; then
-            echo "$SIGNING_KEYSTORE" | base64 -d > ~/.android/debug.keystore
+            echo "$SIGNING_KEYSTORE" | base64 -d > "$RUNNER_TEMP/nameit.keystore"
+            echo "NAMEIT_KEYSTORE=$RUNNER_TEMP/nameit.keystore" >> "$GITHUB_ENV"
             echo "Signing with the stored key."
+          elif [ "${{ github.event_name }}" != pull_request ]; then
+            echo "::error::No SIGNING_KEYSTORE secret – the APK could not be installed as an update."
+            exit 1
           else
-            echo "::warning::No SIGNING_KEYSTORE secret – each build gets a new key, so updates need an uninstall first."
+            echo "::warning::No SIGNING_KEYSTORE secret – this PR build is signed with a throwaway key."
           fi
 
       - run: flutter pub get
@@ -147,6 +151,21 @@ jobs:
             --build-number=${{ steps.version.outputs.build }}
           mv build/app/outputs/flutter-apk/app-release.apk "${{ steps.version.outputs.apk }}"
           ls -lh "${{ steps.version.outputs.apk }}"
+
+      # Guards against the problem that once made every build un-updatable:
+      # the APK must carry the stored key, or Android refuses the update.
+      - name: Check signature
+        if: env.NAMEIT_KEYSTORE != ''
+        run: |
+          expected=$(keytool -exportcert -keystore "$NAMEIT_KEYSTORE" -storepass android -alias androiddebugkey | sha256sum | cut -d' ' -f1)
+          apksigner="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner"
+          actual=$("$apksigner" verify --print-certs "${{ steps.version.outputs.apk }}" | sed -n 's/.*SHA-256 digest: //p' | head -1)
+          echo "expected $expected"
+          echo "actual   $actual"
+          if [ "$expected" != "$actual" ]; then
+            echo "::error::The APK is not signed with the stored key, so it would not install as an update."
+            exit 1
+          fi
 
       - uses: actions/upload-artifact@v7
         with:
