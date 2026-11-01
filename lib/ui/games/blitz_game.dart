@@ -118,7 +118,7 @@ class _BlitzGameState extends State<BlitzGame> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(color: AppTheme.gold, borderRadius: BorderRadius.circular(12)),
-                child: Text('×$_multiplier', style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.white)),
+                child: Text('×$_multiplier', style: const TextStyle(fontWeight: FontWeight.w900, color: Brand.ink)),
               ),
           ]),
           const SizedBox(height: 12),

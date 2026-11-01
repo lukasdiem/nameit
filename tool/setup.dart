@@ -24,6 +24,7 @@ void main() {
 \t<string>The app uses your photos to add student pictures.</string>
 ${m[1]}''',
   );
+  _setAppName('nameIT');
   _raiseCompileSdk();
   stdout.writeln('Done. Now run: flutter run');
 }
@@ -66,6 +67,30 @@ subprojects { sp ->
     return;
   }
   stdout.writeln('skip  android/build.gradle(.kts) (not found – did you run flutter create?)');
+}
+
+/// The name shown under the icon on the home screen.
+void _setAppName(String name) {
+  for (final (path, find, replace) in [
+    ('android/app/src/main/AndroidManifest.xml', RegExp(r'android:label="[^"]*"'), 'android:label="$name"'),
+    ('ios/Runner/Info.plist', RegExp(r'(<key>CFBundleDisplayName</key>\s*<string>)[^<]*(</string>)'), null),
+  ]) {
+    final f = File(path);
+    if (!f.existsSync()) {
+      stdout.writeln('skip  $path (not found – did you run flutter create?)');
+      continue;
+    }
+    final s = f.readAsStringSync();
+    final patched = replace != null
+        ? s.replaceFirst(find, replace)
+        : s.replaceFirstMapped(find, (m) => '${m[1]}$name${m[2]}');
+    if (patched == s) {
+      stdout.writeln('ok    $path (name already set)');
+    } else {
+      f.writeAsStringSync(patched);
+      stdout.writeln('patched $path (app name)');
+    }
+  }
 }
 
 void _patch(String path, {required String marker, required RegExp find, required String Function(Match) insert}) {

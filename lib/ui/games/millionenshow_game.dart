@@ -150,7 +150,7 @@ class _MillionenshowGameState extends State<MillionenshowGame> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
-              color: safety.contains(_q) ? AppTheme.gold.withValues(alpha: 0.2) : scheme.secondaryContainer,
+              color: safety.contains(_q) ? scheme.tertiaryContainer : scheme.primaryContainer,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(

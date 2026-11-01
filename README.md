@@ -12,8 +12,9 @@ Requires Flutter 3.32 or newer (`flutter --version`).
 ```bash
 cd namio
 flutter create --platforms=android,ios --org at.namio .   # generates android/ and ios/, keeps lib/
-dart run tool/setup.dart                                  # adds internet + camera permissions
+dart run tool/setup.dart                                  # adds permissions, sets the app name
 flutter pub get
+dart run flutter_launcher_icons                           # app icon for Android + iOS
 flutter run                                               # with a phone or emulator connected
 ```
 
@@ -33,6 +34,19 @@ lib/
   ui/screens/                  home, class, student, import, settings
   ui/games/                    7 game modes + result screen
 ```
+
+## Design
+
+| Role | Colour | Use |
+|---|---|---|
+| Primary | `#7C2AD6` violet | icon background, buttons, "IT" in the wordmark |
+| Secondary | `#4FE0B0` mint | logo head, progress; `#0E7A5A` where it carries white text (correct answers) |
+| Tertiary | `#FFB627` amber | stars and rewards only |
+| Ink | `#1E1433` | text |
+
+The logo is a lowercase "n" that is also a person. Icon sources are in
+`assets/icon/` (SVG masters + 1024 px PNGs); in the app it is drawn in code
+(`lib/ui/widgets/nameit_logo.dart`). Colours live in `lib/ui/theme.dart`.
 
 ## Game modes
 
