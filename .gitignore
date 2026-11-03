@@ -126,3 +126,6 @@ app.*.symbols
 # Signing keys never go into the repo
 *.keystore
 key.properties
+
+# MkDocs build output
+/site/

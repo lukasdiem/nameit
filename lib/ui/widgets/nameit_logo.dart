@@ -93,6 +93,9 @@ class NameItLockup extends StatelessWidget {
   Widget build(BuildContext context) => Row(mainAxisSize: MainAxisSize.min, children: [
         NameItLogo(size: height),
         SizedBox(width: height * 0.3),
-        NameItWordmark(fontSize: height * 0.75),
+        // Shrinks instead of overflowing when the app bar actions leave little room.
+        Flexible(
+          child: FittedBox(fit: BoxFit.scaleDown, child: NameItWordmark(fontSize: height * 0.75)),
+        ),
       ]);
 }

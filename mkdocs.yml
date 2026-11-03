@@ -1,0 +1,82 @@
+site_name: nameIT
+site_description: Learn your students' names and faces with small games – WebUntis import, everything stays on the phone.
+site_url: https://lukasdiem.github.io/nameit/
+repo_url: https://github.com/lukasdiem/nameit
+repo_name: lukasdiem/nameit
+edit_uri: edit/main/docs/
+copyright: nameIT · all names and faces in this documentation are made up
+
+theme:
+  name: material
+  logo: assets/logo.svg
+  favicon: assets/logo.svg
+  icon:
+    repo: fontawesome/brands/github
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Light mode
+  font:
+    text: Nunito
+    code: JetBrains Mono
+  features:
+    - navigation.sections
+    - navigation.instant
+    - navigation.top
+    - navigation.footer
+    - navigation.indexes
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.action.edit
+
+extra_css:
+  - assets/stylesheets/extra.css
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.keys
+
+nav:
+  - Home: index.md
+  - User guide:
+      - Getting started: user-guide/getting-started.md
+      - Importing students:
+          - user-guide/import/index.md
+          - From WebUntis: user-guide/import/webuntis.md
+          - From a CSV or Excel file: user-guide/import/file.md
+          - Typing names: user-guide/import/manual.md
+      - Classes, students & photos: user-guide/classes.md
+      - Games: user-guide/games.md
+      - How learning works: user-guide/learning.md
+      - Stats & badges: user-guide/stats.md
+      - Settings & privacy: user-guide/settings.md
+      - Try it with the demo class: user-guide/demo-class.md
+  - Developers:
+      - Building & releases: developers/building.md
+      - Code tour: developers/architecture.md
+      - Docs & screenshots: developers/docs-and-screenshots.md

@@ -98,7 +98,7 @@ class ClassScreen extends StatelessWidget {
                 maxCrossAxisExtent: 130,
                 mainAxisSpacing: 14,
                 crossAxisSpacing: 12,
-                childAspectRatio: 0.68,
+                childAspectRatio: 0.66, // photo + two names + level dots
               ),
               itemCount: students.length,
               itemBuilder: (ctx, i) => _StudentTile(student: students[i]),

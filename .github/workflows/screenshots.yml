@@ -1,0 +1,59 @@
+name: Screenshots
+
+# Renders every documented screen with the demo class (docs/demo/) and commits
+# the PNGs to docs/assets/screenshots/. No phone or emulator: Flutter draws the
+# screens in memory (screenshot_test/screenshots_test.dart).
+#
+# Runs when the UI or the demo data changes, or by hand (Actions → Screenshots →
+# Run workflow). Commits pushed by this workflow don't start new workflow runs.
+on:
+  push:
+    paths:
+      - 'lib/**'
+      - 'screenshot_test/**'
+      - 'docs/demo/**'
+      - '.github/workflows/screenshots.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  screenshots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      - name: Render screenshots
+        run: flutter test --update-goldens screenshot_test/
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: screenshots
+          path: docs/assets/screenshots/
+          retention-days: 14
+
+      - name: Commit changed screenshots
+        run: |
+          git add docs/assets/screenshots
+          if git diff --cached --quiet; then
+            echo "Screenshots unchanged."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs: update screenshots"
+          git push
