@@ -193,6 +193,11 @@ jobs:
         with:
           name: apk
 
+      # Same APK under a fixed name, so this link always gets the newest full
+      # release: https://github.com/<owner>/<repo>/releases/latest/download/nameit.apk
+      - name: Fixed-name copy
+        run: cp "${{ needs.build.outputs.apk }}" nameit.apk
+
       - name: Publish release
         uses: softprops/action-gh-release@v3
         with:
@@ -205,4 +210,6 @@ jobs:
           generate_release_notes: ${{ needs.build.outputs.prerelease != 'true' }}
           prerelease: ${{ needs.build.outputs.prerelease == 'true' }}
           make_latest: ${{ needs.build.outputs.prerelease != 'true' }}
-          files: ${{ needs.build.outputs.apk }}
+          files: |
+            ${{ needs.build.outputs.apk }}
+            nameit.apk

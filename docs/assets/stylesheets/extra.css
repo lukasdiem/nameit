@@ -111,3 +111,10 @@
 
 /* Game cards on the games page */
 .md-typeset .grid.cards > ul > li { border-radius: 14px; }
+
+/* "Android · 0.1.0 (build 22)" under the download button */
+.md-typeset .download-note {
+  display: block;
+  margin-top: 0.3em;
+  color: var(--md-default-fg-color--light);
+}
