@@ -2,6 +2,10 @@
 
 App to memorize student names with WebUntis import.
 
+📖 **Documentation:** <https://lukasdiem.github.io/nameit/> – user guide with
+screenshots, game rules, import formats and developer notes (sources in
+[`docs/`](docs/), see [Docs & screenshots](docs/developers/docs-and-screenshots.md)).
+
 Flutter prototype for Android (iOS-ready). Data is organised as
 **School year → Class → Students**, everything stays on the device.
 

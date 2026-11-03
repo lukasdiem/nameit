@@ -41,9 +41,14 @@ import 'package:provider/provider.dart';
 /// `--dart-define=SHOT_LOCALE=de`.
 const locale = String.fromEnvironment('SHOT_LOCALE', defaultValue: 'en');
 
-/// Phone screen: 360 × 780 logical pixels at 2.5× → 900 × 1950 PNGs.
-const logicalSize = Size(360, 780);
+/// Phone screen: 393 × 852 logical pixels (a typical current phone) at 2.5×
+/// → 983 × 2130 PNGs.
+const logicalSize = Size(393, 852);
 const pixelRatio = 2.5;
+
+/// Layout overflows found while rendering. Reported at the end instead of
+/// failing the run, so one cut-off label doesn't block all screenshots.
+final _layoutWarnings = <String>{};
 
 final _shotKey = GlobalKey();
 
@@ -70,6 +75,17 @@ void main() {
       ..devicePixelRatio = pixelRatio;
     addTearDown(tester.view.reset);
 
+    final reportError = FlutterError.onError;
+    FlutterError.onError = (details) {
+      final msg = details.exceptionAsString();
+      if (msg.contains('overflowed by')) {
+        _layoutWarnings.add('${msg.split('\n').first} – ${details.context?.toDescription() ?? ''}'
+            '${_currentShot.isEmpty ? '' : ' (screenshot "$_currentShot")'}');
+        return;
+      }
+      reportError?.call(details);
+    };
+
     final store = AppStore();
     await tester.runAsync(store.load);
 
@@ -90,7 +106,7 @@ void main() {
     await shoot(tester, store, StudentScreen(classId: cls3b.id, student: lena), 'student');
 
     // Stats is a long page: render it taller so badges are on the picture.
-    tester.view.physicalSize = const Size(360, 1640) * pixelRatio;
+    tester.view.physicalSize = Size(logicalSize.width, 1700) * pixelRatio;
     await shoot(tester, store, const StatsScreen(), 'stats');
     tester.view.physicalSize = logicalSize * pixelRatio;
 
@@ -149,8 +165,19 @@ void main() {
     await shoot(tester, store, const HomeScreen(), 'home-dark');
     await shoot(tester, store, ClassScreen(classId: cls3b.id), 'class-dark');
     tester.platformDispatcher.clearPlatformBrightnessTestValue();
+
+    FlutterError.onError = reportError;
+    if (_layoutWarnings.isNotEmpty) {
+      // Shown as warnings on the GitHub Actions run.
+      for (final w in _layoutWarnings) {
+        // ignore: avoid_print
+        print('::warning title=Layout overflow::$w');
+      }
+    }
   });
 }
+
+String _currentShot = '';
 
 String _t(String en, String de) => locale == 'de' ? de : en;
 
@@ -163,6 +190,7 @@ Future<void> shoot(
   Future<void> Function(WidgetTester)? before,
   Duration wait = const Duration(milliseconds: 1200),
 }) async {
+  _currentShot = name;
   // A new app per screenshot, so routes and state never leak between pictures.
   await tester.pumpWidget(const SizedBox());
   await tester.pumpWidget(ChangeNotifierProvider.value(
@@ -227,9 +255,18 @@ Future<void> _seed(AppStore store) async {
     photoOf['${c[2]} ${c[1]}'] = c[3];
   }
 
+  // Every new year or class saves the data file; give each save time to
+  // finish so two writes never race for the same temp file.
+  Future<void> saved() => Future<void>.delayed(const Duration(milliseconds: 300));
   final year = store.addYear(defaultYearName());
+  await saved();
+  final classes = <String, SchoolClass>{};
+  for (final name in parsed.rows.map((r) => r.className!).toSet()) {
+    classes[name] = store.addClass(year.id, name);
+    await saved();
+  }
   for (final r in parsed.rows) {
-    final cls = store.addClass(year.id, r.className!);
+    final cls = classes[r.className!]!;
     final s = store.upsertStudent(classId: cls.id, firstName: r.firstName, lastName: r.lastName, notify: false);
     final photo = File('docs/demo/avatars/${photoOf['${r.firstName} ${r.lastName}']}');
     await store.setPhoto(s, await photo.readAsBytes(), notify: false);

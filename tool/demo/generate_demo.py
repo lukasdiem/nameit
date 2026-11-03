@@ -49,6 +49,7 @@ BOY_HAIR = ["short", "spiky", "side", "curly", "buzz", "quiff", "messy"]
 
 
 def slug(s: str) -> str:
+    s = s.replace("ı", "i")
     s = unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode()
     return s.lower().replace(" ", "-")
 

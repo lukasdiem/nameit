@@ -1,0 +1,113 @@
+/* nameIT brand colours (see lib/ui/theme.dart) */
+:root {
+  --nameit-violet: #7C2AD6;
+  --nameit-mint: #4FE0B0;
+  --nameit-amber: #FFB627;
+  --nameit-ink: #1E1433;
+}
+
+[data-md-color-primary="custom"] {
+  --md-primary-fg-color: #7C2AD6;
+  --md-primary-fg-color--light: #9A55E6;
+  --md-primary-fg-color--dark: #5A1BA3;
+  --md-primary-bg-color: #FFFFFF;
+}
+[data-md-color-accent="custom"] {
+  --md-accent-fg-color: #0E9F74;
+  --md-accent-fg-color--transparent: rgba(14, 159, 116, 0.1);
+}
+[data-md-color-scheme="slate"][data-md-color-primary="custom"] {
+  --md-typeset-a-color: #B88BF2;
+}
+
+.md-typeset h1 { font-weight: 800; }
+.md-typeset h2 { font-weight: 800; }
+
+/* ------------------------------------------------------------ screenshots */
+
+/* A screenshot in a rounded "phone" frame. Usage: ![..](..){ .shot } */
+.md-typeset img.shot {
+  width: 260px;
+  max-width: 100%;
+  border-radius: 22px;
+  border: 6px solid var(--nameit-ink);
+  box-shadow: 0 10px 28px rgba(30, 20, 51, 0.18);
+  background: #fff;
+}
+[data-md-color-scheme="slate"] .md-typeset img.shot { border-color: #3a3150; }
+.md-typeset img.shot.tall { width: 260px; }
+
+/* Several screenshots side by side, wrapping on phones.
+   <div class="shots" markdown> ... </div> */
+.md-typeset .shots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4rem;
+  justify-content: center;
+  margin: 1.5em 0;
+}
+.md-typeset .shots figure {
+  margin: 0;
+  max-width: 260px;
+}
+.md-typeset .shots figcaption {
+  font-size: 0.72rem;
+  color: var(--md-default-fg-color--light);
+  margin-top: 0.4em;
+}
+
+/* Screenshot next to text on wide screens, below it on phones.
+   <div class="side" markdown> text … ![..](..){ .shot } </div> */
+.md-typeset .side {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 2rem;
+  align-items: start;
+}
+@media (max-width: 760px) {
+  .md-typeset .side { grid-template-columns: 1fr; justify-items: center; }
+}
+
+/* ------------------------------------------------------------ home page */
+
+.md-typeset .hero {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 2rem;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+.md-typeset .hero h1 {
+  font-size: 2.6rem;
+  line-height: 1.1;
+  margin-bottom: 0.4em;
+}
+.md-typeset .hero h1 .it { color: var(--nameit-violet); }
+[data-md-color-scheme="slate"] .md-typeset .hero h1 .it { color: #B88BF2; }
+.md-typeset .hero .pics {
+  display: flex;
+  gap: 0.8rem;
+  justify-content: center;
+}
+.md-typeset .hero .pics img.shot { width: 190px; }
+.md-typeset .hero .pics img.shot:nth-child(2) { margin-top: 2.5rem; }
+@media (max-width: 760px) {
+  .md-typeset .hero { grid-template-columns: 1fr; }
+  .md-typeset .hero .pics img.shot { width: 46%; }
+}
+
+/* Avatar strip of the demo class */
+.md-typeset .avatars {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 1em 0;
+}
+.md-typeset .avatars img {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+}
+
+/* Game cards on the games page */
+.md-typeset .grid.cards > ul > li { border-radius: 14px; }
