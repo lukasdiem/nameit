@@ -6,6 +6,7 @@ import '../../l10n/strings.dart';
 import '../../models/models.dart';
 import '../dialogs.dart';
 import '../games/game_modes.dart';
+import '../widgets/learning_bar.dart';
 import '../widgets/student_photo.dart';
 import 'student_screen.dart';
 
@@ -20,7 +21,7 @@ class ClassScreen extends StatelessWidget {
     if (cls == null) return const Scaffold(); // deleted while open
     final students = store.studentsOf(classId);
     final withPhoto = students.where((s) => s.hasPhoto).length;
-    final mastered = students.where((s) => s.level >= Student.maxLevel).length;
+    final counts = LearningCounts(students);
     final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -62,23 +63,9 @@ class ClassScreen extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(18),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Row(children: [
-                    Expanded(
-                      child: Text(context.tr('masteredOf', {'n': mastered, 'total': students.length}),
-                          style: TextStyle(fontWeight: FontWeight.w700, color: scheme.onPrimaryContainer)),
-                    ),
-                    Text('${(store.mastery(classId) * 100).round()}%',
-                        style: TextStyle(fontWeight: FontWeight.w800, color: scheme.onPrimaryContainer)),
-                  ]),
-                  const SizedBox(height: 10),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: LinearProgressIndicator(
-                      value: store.mastery(classId),
-                      minHeight: 10,
-                      backgroundColor: scheme.surface.withValues(alpha: 0.5),
-                    ),
-                  ),
+                  LearningBar(counts, height: 12, onColor: scheme.onPrimaryContainer),
+                  const SizedBox(height: 12),
+                  LearningLegend(counts, onColor: scheme.onPrimaryContainer),
                   if (withPhoto < students.length) ...[
                     const SizedBox(height: 10),
                     Text(context.tr('missingPhotos', {'n': students.length - withPhoto}),

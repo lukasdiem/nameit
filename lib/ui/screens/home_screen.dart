@@ -6,6 +6,7 @@ import '../../l10n/strings.dart';
 import '../../models/models.dart';
 import '../dialogs.dart';
 import '../theme.dart';
+import '../widgets/learning_bar.dart';
 import '../widgets/nameit_logo.dart';
 import 'class_screen.dart';
 import 'import_screen.dart';
@@ -220,8 +221,7 @@ class _ClassCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = context.watch<AppStore>();
     final scheme = Theme.of(context).colorScheme;
-    final count = store.studentsOf(cls.id).length;
-    final m = store.mastery(cls.id);
+    final counts = LearningCounts(store.studentsOf(cls.id));
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -231,18 +231,12 @@ class _ClassCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(cls.name, style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: scheme.primary)),
-            Text(context.tr('nStudents', {'n': count}), style: TextStyle(color: scheme.outline)),
+            Text(context.tr('nStudents', {'n': counts.total}), style: TextStyle(color: scheme.outline)),
             const Spacer(),
-            Row(children: [
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: LinearProgressIndicator(value: m, minHeight: 8),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text('${(m * 100).round()}%', style: const TextStyle(fontWeight: FontWeight.w600)),
-            ]),
+            LearningBar(counts, height: 8),
+            const SizedBox(height: 6),
+            Text(context.tr('knownOf', {'n': counts.known, 'total': counts.total}),
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
           ]),
         ),
       ),

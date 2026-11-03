@@ -6,6 +6,7 @@ import '../../data/badges.dart';
 import '../../l10n/strings.dart';
 import '../../models/models.dart';
 import '../theme.dart';
+import '../widgets/learning_bar.dart';
 import '../widgets/student_photo.dart';
 
 /// Streak, XP, accuracy, the last two weeks, badges and who needs practice.
@@ -69,6 +70,8 @@ class _StatsScreenState extends State<StatsScreen> {
         const SizedBox(height: 24),
         _Section(context.tr('statMastered', {'n': store.masteredCount, 'total': store.students.length})),
         _MasteryList(store: store),
+        const SizedBox(height: 10),
+        LearningLegend(LearningCounts(store.students)),
         const SizedBox(height: 24),
         _Section(context.tr('badges', {'n': store.unlockedBadges.length, 'total': badges.length})),
         _BadgeGrid(store: store),
@@ -238,16 +241,13 @@ class _MasteryList extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Row(children: [
                 SizedBox(width: 72, child: Text(c.name, style: const TextStyle(fontWeight: FontWeight.w700))),
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
-                    child: LinearProgressIndicator(value: store.mastery(c.id), minHeight: 8),
-                  ),
-                ),
+                Expanded(child: LearningBar(LearningCounts(store.studentsOf(c.id)), height: 8)),
                 SizedBox(
-                  width: 48,
-                  child: Text('${(store.mastery(c.id) * 100).round()}%',
-                      textAlign: TextAlign.right, style: const TextStyle(fontWeight: FontWeight.w600)),
+                  width: 56,
+                  child: Text(
+                      '${LearningCounts(store.studentsOf(c.id)).known}/${store.studentsOf(c.id).length}',
+                      textAlign: TextAlign.right,
+                      style: const TextStyle(fontWeight: FontWeight.w600)),
                 ),
               ]),
             ),
