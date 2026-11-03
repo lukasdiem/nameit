@@ -353,17 +353,22 @@ Future<void> _loadFonts() async {
   if (!dir.existsSync()) throw StateError('Fonts not found in ${dir.path}');
 
   final roboto = FontLoader('Roboto');
+  // Text styles without a font family use the platform font on a phone, but
+  // the box-drawing test font ('FlutterTest') in tests. Roboto replaces it.
+  final fallback = FontLoader('FlutterTest');
   final icons = FontLoader('MaterialIcons');
   for (final f in dir.listSync().whereType<File>()) {
     final n = f.uri.pathSegments.last.toLowerCase();
     final bytes = f.readAsBytes().then((b) => ByteData.sublistView(b));
     if (n.startsWith('roboto') && !n.contains('mono') && !n.contains('condensed') && !n.contains('slab')) {
       roboto.addFont(bytes);
+      fallback.addFont(bytes);
     } else if (n.startsWith('materialicons')) {
       icons.addFont(bytes);
     }
   }
   await roboto.load();
+  await fallback.load();
   await icons.load();
 }
 
