@@ -20,7 +20,7 @@
   --md-typeset-a-color: #B88BF2;
 }
 
-.md-typeset h1 { font-weight: 800; }
+.md-typeset h1 { font-weight: 800; color: var(--md-default-fg-color); }
 .md-typeset h2 { font-weight: 800; }
 
 /* ------------------------------------------------------------ screenshots */

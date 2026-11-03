@@ -20,7 +20,7 @@ names. Everything stays on your phone.
 
 </div>
 <div class="pics" markdown>
-![Home screen with two classes](assets/screenshots/home.png){ .shot }
+![Class 3B with photos and learning progress](assets/screenshots/class.png){ .shot }
 ![Millionaire game](assets/screenshots/game-millionaire.png){ .shot }
 </div>
 </div>
