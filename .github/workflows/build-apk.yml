@@ -17,9 +17,9 @@ on:
   push:
     branches: [main]
     tags: ['v*.*.*']
-    paths-ignore: ['**.md', 'LICENSE']
+    paths-ignore: ['**.md', 'LICENSE', 'docs/**', 'mkdocs.yml', 'screenshot_test/**', 'tool/demo/**', '.github/workflows/docs.yml', '.github/workflows/screenshots.yml']
   pull_request:
-    paths-ignore: ['**.md', 'LICENSE']
+    paths-ignore: ['**.md', 'LICENSE', 'docs/**', 'mkdocs.yml', 'screenshot_test/**', 'tool/demo/**', '.github/workflows/docs.yml', '.github/workflows/screenshots.yml']
   workflow_dispatch:
 
 # A newer push to the same PR cancels the older run. Main and tags always finish,
