@@ -36,6 +36,14 @@ After the first successful sign-in nameIT keeps only the **app key** in the
 phone's secure storage (Android Keystore / iOS Keychain) and signs in
 automatically next time. **Sign out** deletes it.
 
+### Several schools or accounts { #accounts }
+
+Teaching at more than one school? Tap the **person +** icon next to your
+account to connect another one – same QR code steps. nameIT keeps all of
+them. With two or more, your account line becomes a menu: pick a school and
+its school years and classes load. nameIT opens with the account you used
+last. **Sign out** removes only the selected account.
+
 ## 2. Pick the school year and classes
 
 nameIT lists the school years from WebUntis. After choosing one you see:

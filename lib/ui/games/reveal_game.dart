@@ -134,7 +134,9 @@ class _RevealGameState extends State<RevealGame> {
                     children: [
                       for (var t = 0; t < tiles; t++)
                         AnimatedOpacity(
-                          duration: const Duration(milliseconds: 300),
+                          // Covering is instant: a fade-in at the start of a round
+                          // would briefly show the next student's photo.
+                          duration: hidden.contains(t) ? Duration.zero : const Duration(milliseconds: 300),
                           opacity: hidden.contains(t) ? 1 : 0,
                           child: Container(
                             margin: const EdgeInsets.all(0.5),

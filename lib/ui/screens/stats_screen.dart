@@ -18,6 +18,9 @@ class StatsScreen extends StatefulWidget {
 }
 
 class _StatsScreenState extends State<StatsScreen> {
+  /// Selected school year; null = the current one.
+  String? _yearId;
+
   @override
   void initState() {
     super.initState();
@@ -32,12 +35,44 @@ class _StatsScreenState extends State<StatsScreen> {
   Widget build(BuildContext context) {
     final store = context.watch<AppStore>();
     final scheme = Theme.of(context).colorScheme;
-    final answers = store.answersTotal;
-    final accuracy = answers == 0 ? null : store.correctTotal / answers;
-    final weakest = store.weakest.take(5).toList();
+    final years = store.yearsSorted;
+    final year = store.yearById(_yearId ?? '') ?? store.currentYear ?? (years.isEmpty ? null : years.first);
+
+    // Everything below except streak and badges counts for this school year only.
+    final yearName = year?.name ?? '';
+    final totals = store.totalsIn(yearName);
+    final range = AppStore.yearRange(yearName);
+    final yearStudents = year == null ? store.students : store.studentsOfYear(year.id);
+    final yearStudentIds = yearStudents.map((s) => s.id).toSet();
+    final accuracy = totals.answers == 0 ? null : totals.correct / totals.answers;
+    final weakest = store.weakest.where((s) => yearStudentIds.contains(s.id)).take(5).toList();
+    final counts = LearningCounts(yearStudents);
 
     return Scaffold(
-      appBar: AppBar(title: Text(context.tr('stats'))),
+      appBar: AppBar(
+        title: Text(context.tr('stats')),
+        actions: [
+          if (year != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: years.length < 2
+                  ? Center(child: Text(year.name, style: TextStyle(color: scheme.outline)))
+                  : PopupMenuButton<String>(
+                      tooltip: context.tr('schoolYear'),
+                      initialValue: year.id,
+                      onSelected: (id) => setState(() => _yearId = id),
+                      itemBuilder: (ctx) => [for (final y in years) PopupMenuItem(value: y.id, child: Text(y.name))],
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                        child: Row(mainAxisSize: MainAxisSize.min, children: [
+                          Text(year.name, style: const TextStyle(fontWeight: FontWeight.w700)),
+                          const Icon(Icons.arrow_drop_down),
+                        ]),
+                      ),
+                    ),
+            ),
+        ],
+      ),
       body: ListView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 32), children: [
         Row(children: [
           _Tile(
@@ -51,9 +86,9 @@ class _StatsScreenState extends State<StatsScreen> {
           _Tile(
             icon: Icons.star_rounded,
             color: scheme.tertiary,
-            value: '${store.xp}',
+            value: '${totals.xp}',
             label: 'XP',
-            sub: context.tr('statGames', {'n': store.gamesTotal}),
+            sub: context.tr('statGames', {'n': totals.games}),
           ),
           const SizedBox(width: 10),
           _Tile(
@@ -61,24 +96,28 @@ class _StatsScreenState extends State<StatsScreen> {
             color: scheme.secondary,
             value: accuracy == null ? '–' : '${(accuracy * 100).round()}%',
             label: context.tr('statAccuracy'),
-            sub: context.tr('statAnswers', {'n': answers}),
+            sub: context.tr('statAnswers', {'n': totals.answers}),
           ),
         ]),
         const SizedBox(height: 24),
         _Section(context.tr('statLast14')),
-        _ActivityChart(store: store),
+        _ActivityChart(store: store, until: range.end.subtract(const Duration(days: 1))),
         const SizedBox(height: 24),
-        _Section(context.tr('statMastered', {'n': store.masteredCount, 'total': store.students.length})),
-        _MasteryList(store: store),
+        _Section(context.tr('statMastered', {'n': counts.known, 'total': counts.total})),
+        _MasteryList(store: store, yearId: year?.id),
         const SizedBox(height: 10),
-        LearningLegend(LearningCounts(store.students)),
+        LearningLegend(counts),
         const SizedBox(height: 24),
         _Section(context.tr('badges', {'n': store.unlockedBadges.length, 'total': badges.length})),
         _BadgeGrid(store: store),
         if (weakest.isNotEmpty) ...[
           const SizedBox(height: 24),
           _Section(context.tr('statNeedsPractice')),
-          for (final s in weakest) _WeakRow(student: s, className: store.classById(s.classId)?.name ?? ''),
+          for (final s in weakest)
+            _WeakRow(
+              student: s,
+              className: store.classById(s.classId) == null ? '' : store.classLabel(store.classById(s.classId)!),
+            ),
         ],
       ]),
     );
@@ -127,13 +166,17 @@ class _Tile extends StatelessWidget {
 
 /// One bar per day: full height = answers, filled part = correct.
 class _ActivityChart extends StatelessWidget {
-  const _ActivityChart({required this.store});
+  const _ActivityChart({required this.store, required this.until});
   final AppStore store;
+
+  /// Last day of the school year; the chart ends there for past years.
+  final DateTime until;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final today = DateTime.now();
+    final now = DateTime.now();
+    final today = until.isBefore(now) ? until : now;
     final dayList = [for (var i = 13; i >= 0; i--) DateTime(today.year, today.month, today.day - i)];
     final data = dayList.map(store.dayStats).toList();
     final maxAnswers = data.fold<int>(0, (m, d) => d[0] > m ? d[0] : m);
@@ -218,16 +261,18 @@ class _Bar extends StatelessWidget {
 }
 
 class _MasteryList extends StatelessWidget {
-  const _MasteryList({required this.store});
+  const _MasteryList({required this.store, required this.yearId});
   final AppStore store;
+  final String? yearId;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final rows = [
       for (final y in store.yearsSorted)
-        for (final c in store.classesOf(y.id))
-          if (store.studentsOf(c.id).isNotEmpty) c,
+        if (yearId == null || y.id == yearId)
+          for (final c in store.classesOf(y.id))
+            if (store.studentsOf(c.id).isNotEmpty) c,
     ];
     if (rows.isEmpty) {
       return Text(context.tr('noClassesYet'), style: TextStyle(color: scheme.outline));
@@ -240,7 +285,10 @@ class _MasteryList extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Row(children: [
-                SizedBox(width: 72, child: Text(c.name, style: const TextStyle(fontWeight: FontWeight.w700))),
+                SizedBox(
+                    width: 96,
+                    child: Text(store.classLabel(c),
+                        maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700))),
                 Expanded(child: LearningBar(LearningCounts(store.studentsOf(c.id)), height: 8)),
                 SizedBox(
                   width: 56,

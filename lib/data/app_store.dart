@@ -21,7 +21,8 @@ class AppStore extends ChangeNotifier {
   int bestStreak = 0;
   String? lastPlayedDay; // yyyy-mm-dd
 
-  /// Answers per day: yyyy-mm-dd -> [answers, correct].
+  /// Activity per day: yyyy-mm-dd -> [answers, correct, xp, games].
+  /// Entries from older versions only have [answers, correct].
   final Map<String, List<int>> days = {};
 
   /// Finished games per mode key (e.g. 'gMillion').
@@ -29,6 +30,9 @@ class AppStore extends ChangeNotifier {
 
   /// Unlocked badges: id -> date unlocked (yyyy-mm-dd).
   final Map<String, String> unlockedBadges = {};
+
+  /// WebUntis schools: key ("server/school") -> display name.
+  final Map<String, String> schools = {};
 
   late Directory _docs;
   late Directory photoDir;
@@ -67,6 +71,16 @@ class AppStore extends ChangeNotifier {
         (j['days'] as Map? ?? {}).forEach((k, v) => days['$k'] = [for (final x in v as List) (x as num).toInt()]);
         (j['gamesByMode'] as Map? ?? {}).forEach((k, v) => gamesByMode['$k'] = (v as num).toInt());
         (j['badges'] as Map? ?? {}).forEach((k, v) => unlockedBadges['$k'] = '$v');
+        (j['schools'] as Map? ?? {}).forEach((k, v) => schools['$k'] = '$v');
+        // Classes imported before schools were tracked came from the one
+        // WebUntis account there was.
+        if (settings.untisServer.isNotEmpty && settings.untisSchool.isNotEmpty) {
+          final key = schoolKey(settings.untisServer, settings.untisSchool);
+          for (final c in classes.where((c) => c.untisId != null && c.school == null)) {
+            c.school = key;
+            schools.putIfAbsent(key, () => settings.untisSchool);
+          }
+        }
       } catch (e) {
         debugPrint('Could not read data file: $e');
       }
@@ -87,6 +101,7 @@ class AppStore extends ChangeNotifier {
       'days': days,
       'gamesByMode': gamesByMode,
       'badges': unlockedBadges,
+      'schools': schools,
     };
     // Write to a temp file first so a crash never leaves a half-written file.
     final tmp = File('${_dataFile.path}.tmp');
@@ -119,6 +134,34 @@ class AppStore extends ChangeNotifier {
   SchoolClass? classById(String id) => classes.where((c) => c.id == id).firstOrNull;
   SchoolYear? yearById(String id) => years.where((y) => y.id == id).firstOrNull;
 
+  static String schoolKey(String server, String school) => '${server.toLowerCase()}/${school.toLowerCase()}';
+
+  void setSchoolName(String key, String name) {
+    if (schools[key] == name) return;
+    schools[key] = name;
+    _changed();
+  }
+
+  /// Classes of a school year grouped by school: imported schools first
+  /// (by name), classes without a school last (key null).
+  List<(String?, List<SchoolClass>)> classesBySchool(String yearId) {
+    final groups = <String?, List<SchoolClass>>{};
+    for (final c in classesOf(yearId)) {
+      groups.putIfAbsent(c.school, () => []).add(c);
+    }
+    final keys = groups.keys.toList()
+      ..sort((a, b) => a == null ? 1 : b == null ? -1 : schoolName(a).toLowerCase().compareTo(schoolName(b).toLowerCase()));
+    return [for (final k in keys) (k, groups[k]!)];
+  }
+
+  String schoolName(String key) => schools[key] ?? key.split('/').last;
+
+  /// "3B", or "3B · HTL Rankweil" once classes come from more than one school.
+  String classLabel(SchoolClass c) {
+    final multi = classes.map((x) => x.school).whereType<String>().toSet().length > 1;
+    return multi && c.school != null ? '${c.name} · ${schoolName(c.school!)}' : c.name;
+  }
+
   /// 0..1 – average Leitner level of the class.
   double mastery(String classId) {
     final list = studentsOf(classId);
@@ -130,8 +173,10 @@ class AppStore extends ChangeNotifier {
 
   // ---------------------------------------------------------------- years & classes
 
+  /// School years are shared by all schools and matched by name ("2026/27");
+  /// WebUntis year ids differ from school to school.
   SchoolYear addYear(String name, {int? untisId}) {
-    final existing = years.where((y) => (untisId != null && y.untisId == untisId) || y.name == name).firstOrNull;
+    final existing = years.where((y) => y.name == name).firstOrNull;
     if (existing != null) {
       existing.untisId ??= untisId;
       return existing;
@@ -155,15 +200,20 @@ class AppStore extends ChangeNotifier {
     _changed();
   }
 
-  SchoolClass addClass(String yearId, String name, {int? untisId}) {
+  /// Adds a class, or returns the existing one of the same school (matched by
+  /// WebUntis id, else by name).
+  SchoolClass addClass(String yearId, String name, {int? untisId, String? school}) {
     final existing = classes
-        .where((c) => c.yearId == yearId && ((untisId != null && c.untisId == untisId) || c.name == name))
+        .where((c) =>
+            c.yearId == yearId &&
+            c.school == school &&
+            ((untisId != null && c.untisId == untisId) || c.name == name))
         .firstOrNull;
     if (existing != null) {
       existing.untisId ??= untisId;
       return existing;
     }
-    final c = SchoolClass(id: newId(), yearId: yearId, name: name, untisId: untisId);
+    final c = SchoolClass(id: newId(), yearId: yearId, name: name, untisId: untisId, school: school);
     classes.add(c);
     _changed();
     return c;
@@ -263,9 +313,12 @@ class AppStore extends ChangeNotifier {
       s.wrong++;
       s.level = max(0, s.level - 2);
     }
-    final day = days.putIfAbsent(_day(DateTime.now()), () => [0, 0]);
+    final day = _today();
     day[0]++;
-    if (correct) day[1]++;
+    if (correct) {
+      day[1]++;
+      day[2] += points;
+    }
     _touchStreak();
     _changed();
     return correct ? points : 0;
@@ -295,6 +348,58 @@ class AppStore extends ChangeNotifier {
         return list.length >= 5 && list.every((s) => s.level >= Student.maxLevel);
       });
 
+  /// Today's activity entry, upgraded to [answers, correct, xp, games].
+  List<int> _today() {
+    final e = days.putIfAbsent(_day(DateTime.now()), () => [0, 0, 0, 0]);
+    if (e.length < 4) days[_day(DateTime.now())] = [e[0], e[1], e[1] * 10, 0];
+    return days[_day(DateTime.now())]!;
+  }
+
+  // ---------------------------------------------------------------- school years in stats
+
+  /// A school year runs from 1 August to 31 July: "2026/27" → Aug 2026 – Jul 2027.
+  /// Names without a year (e.g. "Demo") count as the current school year.
+  static ({DateTime start, DateTime end}) yearRange(String name) {
+    final m = RegExp(r'(\d{4})').firstMatch(name);
+    final y = m != null ? int.parse(m.group(1)!) : _currentStartYear();
+    return (start: DateTime(y, 8, 1), end: DateTime(y + 1, 8, 1));
+  }
+
+  static int _currentStartYear() {
+    final now = DateTime.now();
+    return now.month >= 8 ? now.year : now.year - 1;
+  }
+
+  /// The stored school year for today, if there is one.
+  SchoolYear? get currentYear {
+    final y = '${_currentStartYear()}';
+    return years.where((e) => RegExp(r'(\d{4})').firstMatch(e.name)?.group(1) == y).firstOrNull;
+  }
+
+  /// Answers, correct, XP and games within a school year.
+  ({int answers, int correct, int xp, int games}) totalsIn(String yearName) {
+    final r = yearRange(yearName);
+    var a = 0, c = 0, x = 0, g = 0;
+    days.forEach((key, e) {
+      final d = DateTime.tryParse(key);
+      if (d == null || d.isBefore(r.start) || !d.isBefore(r.end)) return;
+      a += e[0];
+      c += e[1];
+      x += e.length > 2 ? e[2] : e[1] * 10; // older entries: 10 XP per correct answer
+      g += e.length > 3 ? e[3] : 0;
+    });
+    return (answers: a, correct: c, xp: x, games: g);
+  }
+
+  /// XP earned this school year – shown on the home screen (fresh start each year).
+  int get xpThisYear => totalsIn('${_currentStartYear()}').xp;
+
+  /// Students in the classes of one school year.
+  List<Student> studentsOfYear(String yearId) {
+    final ids = classesOf(yearId).map((c) => c.id).toSet();
+    return students.where((s) => ids.contains(s.classId)).toList();
+  }
+
   /// [answers, correct] for a given day.
   List<int> dayStats(DateTime d) => days[_day(d)] ?? const [0, 0];
 
@@ -308,6 +413,7 @@ class AppStore extends ChangeNotifier {
   /// Counts a finished game and returns badges unlocked by it.
   List<BadgeDef> recordGame(GameResult r) {
     gamesByMode[r.modeTitleKey] = (gamesByMode[r.modeTitleKey] ?? 0) + 1;
+    _today()[3]++;
     final fresh = checkBadges(r);
     _changed();
     return fresh;

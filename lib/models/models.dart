@@ -15,17 +15,28 @@ class SchoolYear {
 }
 
 class SchoolClass {
-  SchoolClass({required this.id, required this.yearId, required this.name, this.untisId});
+  SchoolClass({required this.id, required this.yearId, required this.name, this.untisId, this.school});
 
   final String id;
   final String yearId;
   String name;
+
+  /// WebUntis class id – only unique within [school].
   int? untisId;
 
-  Map<String, dynamic> toJson() => {'id': id, 'yearId': yearId, 'name': name, 'untisId': untisId};
+  /// WebUntis school this class was imported from ("server/school"), or
+  /// null for classes from a file, typed in, or the demo.
+  String? school;
 
-  factory SchoolClass.fromJson(Map<String, dynamic> j) =>
-      SchoolClass(id: j['id'], yearId: j['yearId'], name: j['name'], untisId: j['untisId']);
+  Map<String, dynamic> toJson() => {'id': id, 'yearId': yearId, 'name': name, 'untisId': untisId, 'school': school};
+
+  factory SchoolClass.fromJson(Map<String, dynamic> j) => SchoolClass(
+        id: j['id'],
+        yearId: j['yearId'],
+        name: j['name'],
+        untisId: j['untisId'],
+        school: j['school'],
+      );
 }
 
 class Student {

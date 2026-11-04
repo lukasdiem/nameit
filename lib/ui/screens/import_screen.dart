@@ -58,7 +58,12 @@ class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClien
 
   _Step _step = _Step.connecting;
   WebUntisClient? _client;
-  String _account = '';
+  /// Stored accounts, the signed-in one first.
+  List<UntisCredentials> _accounts = [];
+  UntisCredentials? _active;
+
+  /// True while adding a further account (first-time page with a way back).
+  bool _adding = false;
   List<UntisYear> _years = [];
   UntisYear? _year;
   List<UntisClass> _classes = [];
@@ -107,13 +112,13 @@ class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClien
   // ------------------------------------------------------------ sign-in
 
   Future<void> _autoLogin() async {
-    final creds = await UntisCredentials.load();
+    _accounts = await UntisCredentials.loadAll();
     if (!mounted) return;
-    if (creds == null) {
+    if (_accounts.isEmpty) {
       setState(() => _step = _Step.start);
       return;
     }
-    final ok = await _signIn(creds);
+    final ok = await _signIn(_accounts.first);
     if (!ok && mounted) {
       setState(() {
         _step = _Step.start;
@@ -121,6 +126,35 @@ class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClien
       });
     }
   }
+
+  /// Signs in with another stored account and loads its classes.
+  Future<void> _switchTo(UntisCredentials creds) async {
+    setState(() {
+      _step = _Step.connecting;
+      _error = null;
+    });
+    if (!await _signIn(creds) && mounted) {
+      // Stay on the account that worked; the error explains what failed.
+      if (_active != null && await _signIn(_active!)) {
+        if (mounted) toast(context, _error ?? context.tr('connectError'));
+      } else if (mounted) {
+        setState(() => _step = _Step.start);
+      }
+    }
+  }
+
+  /// Opens the first-time page to connect a further account.
+  void _addAccount() => setState(() {
+        _adding = true;
+        _error = null;
+        _step = _Step.start;
+      });
+
+  void _cancelAdd() => setState(() {
+        _adding = false;
+        _error = null;
+        _step = _client != null ? _Step.select : _Step.start;
+      });
 
   Future<void> _scanQr() async {
     final creds = await Navigator.push<UntisCredentials>(
@@ -163,7 +197,13 @@ class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClien
       }
       // Keep only the app key when the server hands it out, not the password.
       final secret = await client.appSecret();
-      await (secret != null ? creds.copyWith(secret: secret) : creds).save();
+      var saved = creds.copyWith(server: client.host, secret: secret);
+      if (saved.schoolName == null) {
+        final name = await WebUntisClient.schoolDisplayName(client.school);
+        if (name != null) saved = saved.copyWith(schoolName: name);
+      }
+      await saved.saveAndActivate();
+      store.setSchoolName(AppStore.schoolKey(client.host, client.school), saved.label);
       store.updateSettings((s) {
         s.untisServer = client.host;
         s.untisSchool = client.school;
@@ -172,8 +212,11 @@ class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClien
 
       final years = await client.schoolYears();
       final current = await client.currentSchoolYear();
+      _client?.logout();
       _client = client;
-      _account = '${creds.user} · ${client.school}';
+      _active = saved;
+      _accounts = await UntisCredentials.loadAll();
+      _adding = false;
       _years = years;
       _year = years.where((y) => y.id == current?.id).firstOrNull ?? (years.isNotEmpty ? years.first : null);
       await _loadClasses();
@@ -189,16 +232,20 @@ class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClien
     return false;
   }
 
+  /// Removes the signed-in account; switches to the next stored one if any.
   Future<void> _signOut() async {
-    await UntisCredentials.clear();
+    final remaining = await (_active?.remove() ?? Future.value(<UntisCredentials>[]));
     _client?.logout();
     if (!mounted) return;
     setState(() {
       _client = null;
+      _active = null;
+      _accounts = remaining;
       _pw.clear();
       _error = null;
       _step = _Step.start;
     });
+    if (remaining.isNotEmpty) await _switchTo(remaining.first);
   }
 
   Future<void> _loadClasses() async {
@@ -302,7 +349,12 @@ class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClien
         }
       }
 
-      final localClass = store.addClass(localYear.id, uc.name, untisId: uc.cls?.id);
+      final localClass = store.addClass(
+        localYear.id,
+        uc.name,
+        untisId: uc.cls?.id,
+        school: AppStore.schoolKey(client.host, client.school),
+      );
       final photosBefore = _importedPhotos;
       for (var j = 0; j < roster.length; j++) {
         final us = roster[j];
@@ -365,6 +417,15 @@ class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClien
     final scheme = Theme.of(context).colorScheme;
     final muted = TextStyle(color: scheme.outline);
     return ListView(padding: const EdgeInsets.fromLTRB(24, 32, 24, 24), children: [
+      if (_adding)
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            onPressed: _cancelAdd,
+            icon: const Icon(Icons.arrow_back),
+            label: Text(context.tr('backToAccount', {'name': _active?.label ?? ''})),
+          ),
+        ),
       Icon(Icons.qr_code_2_rounded, size: 88, color: scheme.primary),
       const SizedBox(height: 16),
       Text(context.tr('qrTitle'),
@@ -482,7 +543,12 @@ class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClien
         child: Row(children: [
           Icon(Icons.verified_user_outlined, size: 18, color: scheme.primary),
           const SizedBox(width: 8),
-          Expanded(child: Text(_account, overflow: TextOverflow.ellipsis, style: TextStyle(color: scheme.outline))),
+          Expanded(child: _AccountSwitcher(active: _active, accounts: _accounts, onSelected: _switchTo)),
+          IconButton(
+            tooltip: context.tr('addAccount'),
+            icon: const Icon(Icons.person_add_alt_1_outlined),
+            onPressed: _addAccount,
+          ),
           TextButton(onPressed: _signOut, child: Text(context.tr('signOut'))),
         ]),
       ),
@@ -590,6 +656,52 @@ class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClien
       const SizedBox(height: 24),
       FilledButton(onPressed: () => Navigator.pop(context), child: Text(context.tr('done'))),
     ]);
+  }
+}
+
+/// "alice · HTL Rankweil ▾" – a menu of the stored accounts when there are
+/// several, plain text otherwise.
+class _AccountSwitcher extends StatelessWidget {
+  const _AccountSwitcher({required this.active, required this.accounts, required this.onSelected});
+  final UntisCredentials? active;
+  final List<UntisCredentials> accounts;
+  final ValueChanged<UntisCredentials> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final a = active;
+    if (a == null) return const SizedBox.shrink();
+    final text = Text('${a.user} · ${a.label}',
+        overflow: TextOverflow.ellipsis, style: TextStyle(color: scheme.outline));
+    if (accounts.length < 2) return text;
+    return PopupMenuButton<UntisCredentials>(
+      tooltip: context.tr('switchAccount'),
+      onSelected: (c) {
+        if (c.id != a.id) onSelected(c);
+      },
+      itemBuilder: (ctx) => [
+        for (final c in accounts)
+          PopupMenuItem(
+            value: c,
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Icon(c.id == a.id ? Icons.check_rounded : Icons.school_outlined,
+                  color: c.id == a.id ? scheme.primary : null),
+              title: Text(c.label),
+              subtitle: Text(c.user),
+            ),
+          ),
+      ],
+      child: Row(children: [
+        Flexible(
+          child: Text('${a.user} · ${a.label}',
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: scheme.onSurface, fontWeight: FontWeight.w600)),
+        ),
+        Icon(Icons.arrow_drop_down, color: scheme.onSurface),
+      ]),
+    );
   }
 }
 

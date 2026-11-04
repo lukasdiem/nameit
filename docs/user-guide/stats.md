@@ -2,14 +2,19 @@
 
 Tap the **flame** or the **star** on the home screen to open the stats.
 
+Stats start fresh every **school year** (1 August to 31 July). The school year
+at the top right switches between years – e.g. to look back at last year.
+The **streak** and the **badges** are yours for good and don't reset. The XP
+on the home screen are those of the current school year.
+
 <div class="side" markdown>
 <div markdown>
 
 * **Day streak** – days in a row with at least one answer, and your record.
-* **XP** and the number of games played.
-* **Accuracy** – share of correct answers overall.
+* **XP** and the number of games played this school year.
+* **Accuracy** – share of correct answers this school year.
 * **Last 14 days** – answers per day; tap a bar for the numbers.
-* **Per class** – how many students you know.
+* **Per class** – how many students you know, for the classes of this school year.
 * **Needs more practice** – the students with the lowest level and the most
   mistakes. Good candidates for a round of *Flashcards*.
 * **Badges** – unlocked ones in colour, locked ones grey. Tap one to see what

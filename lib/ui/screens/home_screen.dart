@@ -36,7 +36,7 @@ class HomeScreen extends StatelessWidget {
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 _StatChip(icon: Icons.local_fire_department_rounded, value: '${store.currentStreak}', color: Brand.coral),
                 const SizedBox(width: 6),
-                _StatChip(icon: Icons.star_rounded, value: '${store.xp}', color: Theme.of(context).colorScheme.tertiary),
+                _StatChip(icon: Icons.star_rounded, value: '${store.xpThisYear}', color: Theme.of(context).colorScheme.tertiary),
               ]),
             ),
           ),
@@ -59,7 +59,16 @@ class HomeScreen extends StatelessWidget {
               children: [
                 for (final y in years) ...[
                   _YearHeader(year: y),
-                  _ClassGrid(classes: store.classesOf(y.id)),
+                  // Year → school → class. With classes from one source only,
+                  // the school heading is left out and nothing changes.
+                  if (store.classesBySchool(y.id).length < 2)
+                    _ClassGrid(classes: store.classesOf(y.id))
+                  else
+                    for (final (school, classes) in store.classesBySchool(y.id)) ...[
+                      _SchoolHeader(school == null ? context.tr('otherClasses') : store.schoolName(school)),
+                      _ClassGrid(classes: classes),
+                      const SizedBox(height: 12),
+                    ],
                   const SizedBox(height: 20),
                 ],
               ],
@@ -198,6 +207,28 @@ class _YearHeader extends StatelessWidget {
             PopupMenuItem(value: 'rename', child: Text(ctx.tr('rename'))),
             PopupMenuItem(value: 'delete', child: Text(ctx.tr('delete'))),
           ],
+        ),
+      ]),
+    );
+  }
+}
+
+class _SchoolHeader extends StatelessWidget {
+  const _SchoolHeader(this.name);
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(children: [
+        Icon(Icons.school_outlined, size: 16, color: scheme.outline),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(name,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontWeight: FontWeight.w600, color: scheme.outline)),
         ),
       ]),
     );

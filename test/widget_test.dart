@@ -85,4 +85,36 @@ void main() {
       expect((await rootBundle.load('${DemoData.avatarDir}/${c[3]}')).lengthInBytes, greaterThan(1000));
     }
   });
+
+  test('Same class name in two schools stays apart, grouped by school', () {
+    final store = AppStore();
+    final year = store.addYear('2026/27');
+    final a = AppStore.schoolKey('htl-rankweil.webuntis.com', 'htl-rankweil');
+    final b = AppStore.schoolKey('bg.webuntis.com', 'bg-feldkirch');
+    store.setSchoolName(a, 'HTL Rankweil');
+    final c1 = store.addClass(year.id, '3B', untisId: 7, school: a);
+    final c2 = store.addClass(year.id, '3B', untisId: 7, school: b);
+    store.addClass(year.id, 'Hand', school: null);
+    expect(c1.id, isNot(c2.id));
+    expect(store.addClass(year.id, '3B', untisId: 7, school: a).id, c1.id);
+    // Years are shared by name, whatever the WebUntis year id.
+    expect(store.addYear('2026/27', untisId: 99).id, year.id);
+    final groups = store.classesBySchool(year.id);
+    expect(groups.map((g) => g.$1), [b, a, null]); // bg-feldkirch < HTL Rankweil, no school last
+    expect(store.classLabel(c1), '3B · HTL Rankweil');
+  });
+
+  test('Stats count per school year', () {
+    final store = AppStore();
+    store.days['2025-10-01'] = [10, 8]; // older entry: XP = 10 per correct answer
+    store.days['2026-09-15'] = [5, 4, 50, 2];
+    store.days['2027-07-31'] = [1, 1, 10, 1];
+    store.days['2027-08-01'] = [3, 3, 30, 1]; // already next school year
+    final y26 = store.totalsIn('2026/27');
+    expect(y26.answers, 6);
+    expect(y26.xp, 60);
+    expect(y26.games, 3);
+    expect(store.totalsIn('2025/26').xp, 80);
+    expect(AppStore.yearRange('2026/27').start, DateTime(2026, 8, 1));
+  });
 }

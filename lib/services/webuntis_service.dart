@@ -49,6 +49,35 @@ class WebUntisClient {
     return (server: uri.host, school: school ?? '');
   }
 
+  /// The school's display name ("HTL Rankweil") from the public WebUntis
+  /// school search, or null if it can't be found.
+  static Future<String?> schoolDisplayName(String loginName) async {
+    try {
+      final res = await http
+          .post(
+            Uri.https('schoolsearch.webuntis.com', '/schoolquery2'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'id': 'nameit',
+              'jsonrpc': '2.0',
+              'method': 'searchSchool',
+              'params': [
+                {'schoolname': loginName},
+              ],
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+      final schools = (jsonDecode(utf8.decode(res.bodyBytes))['result']?['schools'] as List?) ?? const [];
+      final match = schools.whereType<Map>().where(
+            (s) => '${s['loginName']}'.toLowerCase() == loginName.toLowerCase(),
+          );
+      final name = (match.isNotEmpty ? match.first : null)?['displayName']?.toString().trim();
+      return name == null || name.isEmpty ? null : name;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Map<String, String> get _cookies => {
         'Cookie': [
           if (_sessionId != null) 'JSESSIONID=$_sessionId',

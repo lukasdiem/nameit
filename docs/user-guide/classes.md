@@ -13,7 +13,12 @@ well you know them:
 * **amber** – learning
 * **mint** – known
 
-The **flame** and **star** at the top are your daily streak and XP. Tap them
+Classes from [more than one school](import/webuntis.md#accounts) are grouped
+by school within each school year – *2026/27 → HTL Rankweil → 3B*. With one
+school there are no school headings.
+
+The **flame** and **star** at the top are your daily streak and this school
+year's XP. Tap them
 to open [Stats & badges](stats.md). The gear opens [Settings](settings.md).
 
 **+** opens the menu to import data or create a school year or class by hand.
