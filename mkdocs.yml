@@ -45,6 +45,9 @@ theme:
 extra_css:
   - assets/stylesheets/extra.css
 
+extra_javascript:
+  - assets/javascripts/latest-apk.js
+
 markdown_extensions:
   - admonition
   - attr_list

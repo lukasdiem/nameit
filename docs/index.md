@@ -15,8 +15,11 @@ seven short games instead of staring at a class list.
 Import your classes from **WebUntis**, a **CSV/Excel** file or just type the
 names. Everything stays on your phone.
 
-[Get started](user-guide/getting-started.md){ .md-button .md-button--primary }
+[:material-android: Download the app](https://github.com/lukasdiem/nameit/releases){ .md-button .md-button--primary data-latest-apk }
+[Get started](user-guide/getting-started.md){ .md-button }
 [See the games](user-guide/games.md){ .md-button }
+
+<small class="download-note">Android · <span data-latest-apk-version>newest version</span></small>
 
 </div>
 <div class="pics" markdown>

@@ -5,11 +5,26 @@
 nameIT is not in the Play Store yet. Every build is published on GitHub as an
 APK you can install directly on an Android phone.
 
-1. Open the [**Releases** page](https://github.com/lukasdiem/nameit/releases) on your phone.
-2. Pick the newest release marked **Latest** (or the newest *pre-release* if
-   you want the very latest build) and tap the `.apk` file under *Assets*.
-3. Open the downloaded file. Android asks once whether your browser may
+[:material-android: Download the app](https://github.com/lukasdiem/nameit/releases){ .md-button .md-button--primary data-latest-apk }
+<small class="download-note"><span data-latest-apk-version>newest version</span></small>
+
+1. Open this page on your phone and tap **Download the app** – it always
+   fetches the newest version.
+2. Open the downloaded file. Android asks once whether your browser may
    install apps – allow it.
+
+??? info "Permanent download link"
+
+    To share or bookmark, use
+
+    ```text
+    https://github.com/lukasdiem/nameit/releases/latest/download/nameit.apk
+    ```
+
+    It always points to the newest **full release** (tagged versions like
+    `v0.2.0`). Test builds from every change are listed on the
+    [Releases page](https://github.com/lukasdiem/nameit/releases) as
+    *pre-releases*.
 
 !!! tip "Updates keep your data"
 

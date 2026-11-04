@@ -2,6 +2,9 @@
 
 App to memorize student names with WebUntis import.
 
+📲 **Download:** [newest release (APK)](https://github.com/lukasdiem/nameit/releases/latest/download/nameit.apk)
+· [all builds](https://github.com/lukasdiem/nameit/releases)
+
 📖 **Documentation:** <https://lukasdiem.github.io/nameit/> – user guide with
 screenshots, game rules, import formats and developer notes (sources in
 [`docs/`](docs/), see [Docs & screenshots](docs/developers/docs-and-screenshots.md)).
