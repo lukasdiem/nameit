@@ -32,7 +32,8 @@ class _BlitzGameState extends State<BlitzGame> {
   late Student _face;
   late Student _name;
   int _score = 0, _combo = 0, _answered = 0, _correct = 0, _xp = 0;
-  bool? _flash; // last answer correct?
+  /// Result of the answer being shown (✓ or ✕), null while waiting for one.
+  bool? _feedback;
   final List<Student> _missed = [];
 
   @override
@@ -63,8 +64,8 @@ class _BlitzGameState extends State<BlitzGame> {
     _name = _rnd.nextBool() ? _face : store.distractors(_face, widget.pool, 1).first;
   }
 
-  void _answer(bool saysMatch) {
-    if (!_started || _left <= 0) return;
+  Future<void> _answer(bool saysMatch) async {
+    if (!_started || _left <= 0 || _feedback != null) return;
     final ok = saysMatch == (_face.id == _name.id);
     hapticFor(ok);
     _answered++;
@@ -77,8 +78,12 @@ class _BlitzGameState extends State<BlitzGame> {
       _missed.add(_face);
     }
     _xp += store.recordAnswer(_face, ok, points: 5);
+    // Show ✓ / ✕ on the photo for a moment, then the next student.
+    setState(() => _feedback = ok);
+    await Future.delayed(const Duration(milliseconds: 450));
+    if (!mounted || _left <= 0) return;
     setState(() {
-      _flash = ok;
+      _feedback = null;
       _next();
     });
   }
@@ -124,17 +129,27 @@ class _BlitzGameState extends State<BlitzGame> {
           ]),
           const SizedBox(height: 12),
           Expanded(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(28),
-                color: _flash == null
-                    ? Colors.transparent
-                    : (_flash! ? AppTheme.good : AppTheme.bad).withValues(alpha: 0.35),
-              ),
-              child: GamePhoto(_face, maxSize: 340),
-            ),
+            child: Stack(alignment: Alignment.center, children: [
+              GamePhoto(_face, maxSize: 340),
+              if (_feedback != null)
+                TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0.5, end: 1),
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeOutBack,
+                  builder: (ctx, v, child) => Transform.scale(scale: v, child: child),
+                  child: Container(
+                    width: 112,
+                    height: 112,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _feedback! ? AppTheme.good : AppTheme.bad,
+                      boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 16)],
+                    ),
+                    child: Icon(_feedback! ? Icons.check_rounded : Icons.close_rounded,
+                        color: Colors.white, size: 72),
+                  ),
+                ),
+            ]),
           ),
           const SizedBox(height: 16),
           Text(_name.fullName,
