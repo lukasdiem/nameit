@@ -18,6 +18,19 @@ if your school stores them – their photos.
     The QR code contains your server, school, user name and an app key – no
     password needed.
 
+=== "Only one phone"
+
+    1. Open WebUntis in the phone's browser and sign in.
+    2. Tap your **profile** → **Freigaben** (sharing) →
+       **Zugriff über Untis Mobile** → **Anzeigen**.
+    3. Take a **screenshot** of the QR code.
+    4. In nameIT tap **Scan QR code** → **Choose from image** and pick the
+       screenshot.
+
+    !!! warning "Delete the screenshot afterwards"
+        The code contains your app key. Once nameIT is connected, delete the
+        screenshot from your gallery.
+
 === "User name and password"
 
     Tap **Sign in with username and password** and fill in server, school,

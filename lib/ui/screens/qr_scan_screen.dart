@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../l10n/strings.dart';
 import '../../services/untis_credentials.dart';
 
 /// Full-screen camera that waits for the WebUntis QR code and returns the
-/// login it contains.
+/// login it contains. "Choose from image" reads the code from a screenshot,
+/// for when WebUntis is open on the same phone.
 class QrScanScreen extends StatefulWidget {
   const QrScanScreen({super.key});
 
@@ -25,18 +27,46 @@ class _QrScanScreenState extends State<QrScanScreen> {
     super.dispose();
   }
 
-  void _onDetect(BarcodeCapture capture) {
-    if (_done) return;
-    for (final b in capture.barcodes) {
+  /// Message key shown at the bottom.
+  String _hint = 'qrHint';
+
+  /// True when the codes were accepted.
+  bool _accept(BarcodeCapture? capture) {
+    if (_done) return true;
+    for (final b in capture?.barcodes ?? const <Barcode>[]) {
       final creds = UntisCredentials.fromQr(b.rawValue ?? '');
       if (creds != null) {
         _done = true;
         HapticFeedback.mediumImpact();
         Navigator.pop(context, creds);
-        return;
+        return true;
       }
     }
-    if (!_wrongCode) setState(() => _wrongCode = true);
+    return false;
+  }
+
+  void _onDetect(BarcodeCapture capture) {
+    if (!_accept(capture) && !_wrongCode) {
+      setState(() {
+        _wrongCode = true;
+        _hint = 'qrWrong';
+      });
+    }
+  }
+
+  /// Reads the QR code from a picture, e.g. a screenshot of WebUntis.
+  Future<void> _fromImage() async {
+    final file = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (file == null || !mounted) return;
+    BarcodeCapture? capture;
+    try {
+      capture = await _controller.analyzeImage(file.path, formats: const [BarcodeFormat.qrCode]);
+    } catch (_) {}
+    if (!mounted || _accept(capture)) return;
+    setState(() {
+      _wrongCode = true;
+      _hint = (capture?.barcodes.isEmpty ?? true) ? 'qrNoneInImage' : 'qrWrong';
+    });
   }
 
   @override
@@ -68,10 +98,16 @@ class _QrScanScreenState extends State<QrScanScreen> {
               ),
             ),
             const Spacer(),
+            FilledButton.tonalIcon(
+              onPressed: _fromImage,
+              icon: const Icon(Icons.photo_library_outlined),
+              label: Text(context.tr('qrFromImage')),
+            ),
+            const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.fromLTRB(32, 0, 32, 40),
               child: Text(
-                context.tr(_wrongCode ? 'qrWrong' : 'qrHint'),
+                context.tr(_hint),
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
               ),
