@@ -94,9 +94,13 @@ class AppStore extends ChangeNotifier {
     await tmp.rename(_dataFile.path);
   }
 
+  /// Saves run one after another: two at once would race for the same
+  /// temp file (e.g. an import that adds several classes in a row).
+  Future<void> _saving = Future.value();
+
   void _changed() {
     notifyListeners();
-    _save();
+    _saving = _saving.then((_) => _save()).catchError((Object e) => debugPrint('Could not save: $e'));
   }
 
   String newId() =>

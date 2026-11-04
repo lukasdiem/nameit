@@ -56,6 +56,13 @@ that they never leave your phone:
     school and its data protection rules. nameIT keeps them as safe as the
     phone itself – use a screen lock.
 
+## Version
+
+The last line of Settings shows the app version and build, e.g.
+*nameIT 0.1.0 · build 22*. The build number matches the release on
+[GitHub](https://github.com/lukasdiem/nameit/releases) – useful when reporting
+a problem.
+
 ## Dark mode
 
 nameIT follows the phone's light or dark mode.

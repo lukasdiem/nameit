@@ -39,36 +39,32 @@ colleagues, too.
 ![Simon Egger](../demo/avatars/simon-egger.jpg){ title="Simon Egger" }
 </div>
 
+## Load it in the app
+
+The demo class comes with the app – one tap, photos included:
+
+* On the **empty home screen**: tap **Try it with demo classes first**.
+* Any time later: **+ → Load demo classes**.
+
+Classes **3B** (18 students) and **4A** (10) appear in a school year called
+**Demo**, kept apart from your real classes. Tap **Play** and every game is
+unlocked.
+
+Loading it again doesn't create duplicates. To remove it, open the **⋯** menu
+next to the school year **Demo** and choose **Delete**.
+
 ## Downloads
+
+The same files, e.g. to try the [file import](import/file.md) yourself:
 
 | File | What it is |
 |---|---|
 | [:material-file-delimited: demo-classes.csv](../demo/demo-classes.csv) | Class list: classes **3B** (18 students) and **4A** (10) |
 | [:material-folder-zip: avatars.zip](../demo/avatars.zip) | All 28 avatars as JPG, named `firstname-lastname.jpg` |
 
-## Import it on your phone
-
-1. Download both files on your phone and unzip `avatars.zip`
-   (most file managers do this with a tap). Keep the pictures in your
-   gallery or a folder you can find.
-2. In nameIT: **+ → Import data → File**, pick the school year, choose
-   `demo-classes.csv` and tap **Import**. Classes **3B** and **4A** appear.
-3. Open **3B**, tap a student, tap **Gallery** and pick the picture with
-   their name. Repeat for each student.
-
-    The `Foto` column in the CSV says which picture belongs to whom. nameIT
-    ignores that column – it is only there for you.
-
-4. Tap **Play**. With four or more photos every game is unlocked.
-
-!!! tip "Just a few photos"
-    You don't need all 28. Give photos to five or six students of 3B and all
-    games work.
-
-!!! info "No bulk photo import (yet)"
-    Photos are added one student at a time. That's why the documentation
-    screenshots aren't made on a phone – they are rendered automatically from
-    the same files, see [Docs & screenshots](../developers/docs-and-screenshots.md).
+The `Foto` column in the CSV says which picture belongs to whom. The file
+import ignores that column – with a file import, photos are added one student
+at a time via **Gallery**.
 
 ## Where it comes from
 

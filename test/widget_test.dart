@@ -1,4 +1,6 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nameit/services/demo_data.dart';
 import 'package:nameit/services/file_import.dart';
 import 'package:nameit/services/webuntis_service.dart';
 import 'package:nameit/services/untis_mobile_api.dart';
@@ -67,5 +69,20 @@ void main() {
     expect(ids.contains('streak3'), isFalse);
     // Unlocked badges are not reported twice.
     expect(store.checkBadges().map((b) => b.id), isNot(contains('millionaire')));
+  });
+
+  test('Demo class is bundled with every avatar', () async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    final rows = (await rootBundle.loadString(DemoData.csvAsset))
+        .split('\n')
+        .skip(1)
+        .map((l) => l.trim().split(';'))
+        .where((c) => c.length >= 4)
+        .toList();
+    expect(rows.length, 28);
+    expect(rows.map((c) => c[0]).toSet(), {'3B', '4A'});
+    for (final c in rows) {
+      expect((await rootBundle.load('${DemoData.avatarDir}/${c[3]}')).lengthInBytes, greaterThan(1000));
+    }
   });
 }

@@ -11,6 +11,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -64,6 +65,14 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
       const MethodChannel('plugins.it_nomads.com/flutter_secure_storage'),
       (call) async => null,
+    );
+    // Version line in Settings.
+    PackageInfo.setMockInitialValues(
+      appName: 'nameIT',
+      packageName: 'at.nameit.nameit',
+      version: '0.1.0',
+      buildNumber: '42',
+      buildSignature: '',
     );
     await _loadFonts();
   });

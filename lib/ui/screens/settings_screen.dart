@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../../data/app_store.dart';
@@ -86,6 +87,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
         Padding(
           padding: const EdgeInsets.all(16),
           child: Text(context.tr('privacyNote'), style: muted),
+        ),
+        // Version name from pubspec.yaml, build number from the CI run.
+        FutureBuilder<PackageInfo>(
+          future: PackageInfo.fromPlatform(),
+          builder: (ctx, snap) => snap.hasData
+              ? Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                  child: Text(
+                    ctx.tr('versionLine', {'v': snap.data!.version, 'b': snap.data!.buildNumber}),
+                    style: muted,
+                  ),
+                )
+              : const SizedBox.shrink(),
         ),
       ]),
     );

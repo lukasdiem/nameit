@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../data/app_store.dart';
 import '../../l10n/strings.dart';
 import '../../models/models.dart';
+import '../../services/demo_data.dart';
 import '../dialogs.dart';
 import '../theme.dart';
 import '../widgets/learning_bar.dart';
@@ -82,6 +83,12 @@ class HomeScreen extends StatelessWidget {
             onTap: () => Navigator.pop(ctx, 'import'),
           ),
           ListTile(
+            leading: const Icon(Icons.science_outlined),
+            title: Text(ctx.tr('demoLoad')),
+            subtitle: Text(ctx.tr('demoLoadSub')),
+            onTap: () => Navigator.pop(ctx, 'demo'),
+          ),
+          ListTile(
             leading: const Icon(Icons.calendar_month_outlined),
             title: Text(ctx.tr('newYear')),
             onTap: () => Navigator.pop(ctx, 'year'),
@@ -99,6 +106,8 @@ class HomeScreen extends StatelessWidget {
     switch (choice) {
       case 'import':
         _openImport(context);
+      case 'demo':
+        await loadDemo(context);
       case 'year':
         {
           final name = await askText(context, title: context.tr('newYear'), hint: defaultYearName());
@@ -117,6 +126,12 @@ class HomeScreen extends StatelessWidget {
         }
     }
   }
+}
+
+/// Loads the demo classes and says which ones were added.
+Future<void> loadDemo(BuildContext context) async {
+  final names = await DemoData.load(context.read<AppStore>());
+  if (context.mounted) toast(context, context.tr('demoLoaded', {'names': names.join(', ')}));
 }
 
 /// "2026/27" for the school year that contains today (starts in September).
@@ -264,6 +279,12 @@ class _EmptyState extends StatelessWidget {
               onPressed: onImport,
               icon: const Icon(Icons.cloud_download_outlined),
               label: Text(context.tr('importData')),
+            ),
+            const SizedBox(height: 8),
+            TextButton.icon(
+              onPressed: () => loadDemo(context),
+              icon: const Icon(Icons.science_outlined),
+              label: Text(context.tr('demoTry')),
             ),
           ]),
         ),

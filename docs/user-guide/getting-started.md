@@ -39,6 +39,9 @@ Tap **Import data** to bring in your first class. You have three options:
 | [**CSV / Excel file**](import/file.md) | You have a student list exported from WebUntis or any spreadsheet |
 | [**Manual**](import/manual.md) | A small group, or a quick try |
 
+Just want to look around first? Tap **Try it with demo classes first** – see
+[Demo class](demo-class.md).
+
 The **+** button also lets you create a school year or an empty class by hand.
 
 </div>

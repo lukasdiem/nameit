@@ -21,6 +21,7 @@ dependencies:
   excel: ^4.0.6
   flutter_secure_storage: ^11.2.0
   mobile_scanner: ^7.0.1
+  package_info_plus: ^10.0.0
 
 dev_dependencies:
   flutter_test:
@@ -33,6 +34,10 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # The demo class from the documentation, loadable from the home screen.
+  assets:
+    - docs/demo/demo-classes.csv
+    - docs/demo/avatars/
 
 # App icon for Android and iOS. Generated into android/ and ios/ by
 #   dart run flutter_launcher_icons
