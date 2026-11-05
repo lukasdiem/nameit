@@ -463,6 +463,8 @@ class _WebUntisTabState extends State<_WebUntisTab> with AutomaticKeepAliveClien
       ),
       const SizedBox(height: 16),
       Text(context.tr('privacyNote'), textAlign: TextAlign.center, style: muted.copyWith(fontSize: 12)),
+      const SizedBox(height: 8),
+      Text(context.tr('untisNote'), textAlign: TextAlign.center, style: muted.copyWith(fontSize: 12)),
     ]);
   }
 

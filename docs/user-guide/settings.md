@@ -12,7 +12,9 @@ falls back to English). **Deutsch** and **English** force one language.
 
 ## WebUntis
 
-Shows the server, school and user of your last WebUntis sign-in.
+Shows the server, school and user of your last WebUntis sign-in. Adding,
+switching and signing out of accounts happens on the import screen – see
+[Several schools or accounts](import/webuntis.md#accounts).
 
 ### Custom photo address { #custom-photo-address }
 
@@ -40,21 +42,38 @@ Only fill it in if your school's server keeps photos elsewhere. Placeholders:
 ## Privacy { #privacy }
 
 Names and photos of students are personal data (GDPR). nameIT is built so
-that they never leave your phone:
+that they never leave your phone. The full text is in the
+[privacy policy](../legal/privacy.md).
 
-* **No backend, no account, no analytics.** There is no nameIT server.
+* **No nameIT server, no account, no ads, no analytics.** The provider of
+  nameIT never receives any of your data.
 * Data lives in the app's **private storage** – one data file plus a folder of
   photos. Other apps can't read it.
-* The only network connection is to **your school's WebUntis server**, and
-  only when you import.
-* The WebUntis **app key** is kept in the Android Keystore / iOS Keychain.
-  **Sign out** on the import screen deletes it.
+* Network connections go only to **your school's WebUntis server** when you
+  import, and to WebUntis' public school search for the school's display
+  name.
+* The **QR code scanner** uses Google ML Kit, which sends technical device
+  and usage data (no images, no QR contents) to Google. Signing in with user
+  name and password avoids it.
+* The WebUntis **app keys** – one per connected account – are kept in the
+  Android Keystore / iOS Keychain. **Sign out** on the import screen deletes
+  the selected one.
+* A screenshot of the WebUntis QR code contains your app key – delete it from
+  the gallery after signing in ([one-phone sign-in](import/webuntis.md)).
 * **Delete all data** or **uninstalling** the app removes everything.
 
 !!! warning "Check with your school"
-    Whether you may keep student photos on a personal phone is up to your
-    school and its data protection rules. nameIT keeps them as safe as the
+    You are responsible for the student data you store in nameIT – not the
+    app's provider. Whether you may keep names and photos of students on your
+    phone is up to your school and its data protection rules, so ask first. nameIT keeps them as safe as the
     phone itself – use a screen lock.
+
+## Legal { #legal }
+
+**Settings → Legal** links to the [privacy policy](../legal/privacy.md), the
+[terms of use & disclaimer](../legal/terms.md) and the
+[legal notice](../legal/notice.md), and lists the open-source licences of
+the libraries nameIT uses.
 
 ## Version
 

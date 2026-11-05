@@ -166,13 +166,13 @@ class GameResult {
   final int xp;
   final List<Student> missed;
 
-  /// Optional extra line, e.g. "€ 16.000" in Millionenshow or "14 moves" in Memory.
+  /// Optional extra line, e.g. "€ 16.000" in the million quiz or "14 moves" in Memory.
   final String? headline;
 
   /// For games where accuracy isn't the right measure (e.g. Memory moves).
   final int? starsOverride;
 
-  /// Game-specific number used for badges: euros in Millionenshow, points
+  /// Game-specific number used for badges: euros in the million quiz, points
   /// in Blitz and Reveal, moves in Memory.
   final int? score;
 

@@ -9,8 +9,8 @@ class who have a photo, and every answer counts towards their
 
 | Game | Direction | Needs |
 |---|---|---|
-| [Millionaire](#millionaire) | face → name | 4 photos |
-| [Memory](#memory) | both | 3 photos |
+| [Million Quiz](#million-quiz) | face → name | 4 photos |
+| [Pairs](#pairs) | both | 3 photos |
 | [Who is it?](#who-is-it) | name → face | 4 photos |
 | [Blitz](#blitz) | face ↔ name | 2 photos |
 | [Reveal](#reveal) | face → name | 4 photos |
@@ -30,7 +30,7 @@ multiple-choice games feel easy.
 
 ---
 
-## Millionaire { #millionaire }
+## Million Quiz { #million-quiz }
 
 <div class="side" markdown>
 <div markdown>
@@ -50,10 +50,10 @@ Winning the million unlocks the *Millionaire* badge.
 
 </div>
 
-![Millionaire](../assets/screenshots/game-millionaire.png){ .shot }
+![Million Quiz](../assets/screenshots/game-millionaire.png){ .shot }
 </div>
 
-## Memory { #memory }
+## Pairs { #pairs }
 
 <div class="side" markdown>
 <div markdown>
@@ -67,7 +67,7 @@ student.
 
 </div>
 
-![Memory](../assets/screenshots/game-memory.png){ .shot }
+![Pairs](../assets/screenshots/game-memory.png){ .shot }
 </div>
 
 ## Who is it? { #who-is-it }
@@ -93,6 +93,10 @@ it is.
 
 **60 seconds**: a photo and a name – does it match? Tap ✓ or ✗ as fast as
 you can.
+
+After each answer a big green **✓** or red **✕** pops up on the photo for a
+moment, then the next student appears. Taps during that moment don't count,
+so a double tap can't skip a face.
 
 Right answers in a row build a **combo**: from 5 in a row your points count
 double, from 10 triple. A wrong answer resets the combo. 30 points unlock

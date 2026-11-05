@@ -17,9 +17,9 @@ on:
   push:
     branches: [main]
     tags: ['v*.*.*']
-    paths-ignore: ['**.md', 'LICENSE', 'docs/*.md', 'docs/requirements.txt', 'docs/assets/**', 'docs/user-guide/**', 'docs/developers/**', 'mkdocs.yml', 'screenshot_test/**', '.github/workflows/docs.yml', '.github/workflows/screenshots.yml']
+    paths-ignore: ['**.md', 'LICENSE', 'docs/*.md', 'docs/requirements.txt', 'docs/assets/**', 'docs/user-guide/**', 'docs/developers/**', 'mkdocs.yml', 'screenshot_test/**', '.github/workflows/docs.yml', '.github/workflows/screenshots.yml', 'fastlane/**', 'tool/store/**']
   pull_request:
-    paths-ignore: ['**.md', 'LICENSE', 'docs/*.md', 'docs/requirements.txt', 'docs/assets/**', 'docs/user-guide/**', 'docs/developers/**', 'mkdocs.yml', 'screenshot_test/**', '.github/workflows/docs.yml', '.github/workflows/screenshots.yml']
+    paths-ignore: ['**.md', 'LICENSE', 'docs/*.md', 'docs/requirements.txt', 'docs/assets/**', 'docs/user-guide/**', 'docs/developers/**', 'mkdocs.yml', 'screenshot_test/**', '.github/workflows/docs.yml', '.github/workflows/screenshots.yml', 'fastlane/**', 'tool/store/**']
   workflow_dispatch:
 
 # A newer push to the same PR cancels the older run. Main and tags always finish,
@@ -173,6 +173,53 @@ jobs:
             echo "::error::The APK is not signed with the stored key, so it would not install as an update."
             exit 1
           fi
+
+      # Google Play only accepts apps that target a recent Android version
+      # (API 36 since 31 Aug 2026). Fails early instead of at upload.
+      - name: Check target SDK
+        run: |
+          aapt2="$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)aapt2"
+          target=$("$aapt2" dump badging "${{ steps.version.outputs.apk }}" | sed -n "s/^targetSdkVersion:'\([0-9]*\)'.*/\1/p")
+          echo "targetSdkVersion: $target"
+          if [ -z "$target" ] || [ "$target" -lt 36 ]; then
+            echo "::error::targetSdkVersion $target – Google Play needs 36 or higher."
+            exit 1
+          fi
+
+      # App bundle for Google Play, signed with the separate *upload key*
+      # (Play re-signs it with the app signing key it keeps). Only for version
+      # tags and manual runs; kept as a workflow artifact, not published.
+      - name: Build app bundle for Google Play
+        if: github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'
+        env:
+          PLAY_UPLOAD_KEYSTORE: ${{ secrets.PLAY_UPLOAD_KEYSTORE }}
+          PLAY_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEYSTORE_PASSWORD }}
+          PLAY_UPLOAD_KEY_ALIAS: ${{ secrets.PLAY_UPLOAD_KEY_ALIAS }}
+          PLAY_UPLOAD_KEY_PASSWORD: ${{ secrets.PLAY_UPLOAD_KEY_PASSWORD }}
+        run: |
+          if [ -z "$PLAY_UPLOAD_KEYSTORE" ]; then
+            echo "::notice::No PLAY_UPLOAD_KEYSTORE secret – skipping the Google Play bundle."
+            exit 0
+          fi
+          echo "$PLAY_UPLOAD_KEYSTORE" | base64 -d > "$RUNNER_TEMP/upload.keystore"
+          NAMEIT_KEYSTORE="$RUNNER_TEMP/upload.keystore" \
+          NAMEIT_KEYSTORE_PASSWORD="$PLAY_UPLOAD_KEYSTORE_PASSWORD" \
+          NAMEIT_KEY_ALIAS="$PLAY_UPLOAD_KEY_ALIAS" \
+          NAMEIT_KEY_PASSWORD="$PLAY_UPLOAD_KEY_PASSWORD" \
+          flutter build appbundle --release \
+            --build-name=${{ steps.version.outputs.version }} \
+            --build-number=${{ steps.version.outputs.build }}
+          mkdir -p play && mv build/app/outputs/bundle/release/app-release.aab \
+            "play/nameit-${{ steps.version.outputs.version }}-build.${{ steps.version.outputs.build }}.aab"
+          rm -f "$RUNNER_TEMP/upload.keystore"
+
+      - uses: actions/upload-artifact@v7
+        if: hashFiles('play/*.aab') != ''
+        with:
+          name: play-bundle
+          path: play/*.aab
+          retention-days: 30
+          compression-level: 0
 
       - uses: actions/upload-artifact@v7
         with:

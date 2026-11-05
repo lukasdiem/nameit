@@ -155,7 +155,12 @@ class _Tile extends StatelessWidget {
               child: Text(value,
                   style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, fontFeatures: [FontFeature.tabularFigures()])),
             ),
-            Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+            // One line: long words like "Treffsicherheit" shrink instead of breaking.
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(label, maxLines: 1, style: const TextStyle(fontWeight: FontWeight.w600)),
+            ),
             Text(sub, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, color: muted)),
           ]),
         ),

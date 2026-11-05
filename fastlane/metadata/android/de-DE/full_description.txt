@@ -1,0 +1,31 @@
+Neue Klassen, viele neue Gesichter? nameIT hilft Lehrkräften, die Namen ihrer Schülerinnen und Schüler schnell und dauerhaft zu lernen – mit kurzen Spielen statt Namenslisten.
+
+<b>Für wen?</b>
+nameIT ist für Lehrerinnen und Lehrer gemacht, die sich ihre Klassen merken wollen – besonders in den ersten Wochen eines Schuljahres. Die App ist nicht für Schülerinnen und Schüler gedacht.
+
+<b>Sieben Spiele</b>
+• Millionenquiz – Foto, vier Namen, 15 Fragen bis zur Million
+• Paare finden – Foto und Namen zusammenbringen
+• Wer ist das? – Name gegeben, tippe auf das richtige Gesicht
+• Blitzrunde – 60 Sekunden: passt der Name zum Gesicht?
+• Aufdecken – das Foto deckt sich langsam auf
+• Eintippen – den Vornamen ohne Auswahl schreiben
+• Lernkarten – in Ruhe lernen und ehrlich bewerten
+
+<b>Lernt dort, wo es nötig ist</b>
+Jede Antwort verändert den Lernstand der Person. Wen du noch nicht kennst oder länger nicht gesehen hast, kommt öfter dran. Statistik, Tagesserie und 15 Abzeichen zeigen deinen Fortschritt.
+
+<b>Klassen anlegen</b>
+• CSV- oder Excel-Datei mit Vorname, Nachname und Klasse
+• Namen eintippen oder einfügen
+• Import aus WebUntis* mit deinem eigenen Zugang – auf Wunsch mit den Fotos, die deine Schule dort hinterlegt hat
+• Fotos mit der Kamera aufnehmen oder aus der Galerie wählen
+• Demo-Klassen mit erfundenen, gezeichneten Personen zum Ausprobieren
+
+<b>Datenschutz</b>
+nameIT hat keinen eigenen Server, kein Benutzerkonto, keine Werbung und kein Tracking. Namen, Fotos und Lernfortschritt bleiben nur auf deinem Gerät. Bitte importiere Daten deiner Schülerinnen und Schüler nur, wenn deine Schule das erlaubt – für diese Daten bist du bzw. deine Schule verantwortlich.
+
+Datenschutzerklärung: https://lukasdiem.github.io/nameit/legal/privacy/
+Anleitung: https://lukasdiem.github.io/nameit/
+
+* nameIT ist eine unabhängige App und steht in keiner Verbindung zur Untis GmbH. Untis und WebUntis sind Marken der Untis GmbH. Der WebUntis-Import benötigt einen Zugang deiner Schule und kann von Änderungen an WebUntis abhängen.

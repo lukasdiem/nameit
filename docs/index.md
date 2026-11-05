@@ -9,8 +9,9 @@ hide:
 
 # Every face.<br>Every <span class="it">name</span>.
 
-**name<span class="it">IT</span>** helps teachers learn the names and faces of their students – with
-seven short games instead of staring at a class list.
+**name<span class="it">IT</span>** is an app **for teachers**: learn the names and faces of
+your students with seven short games instead of staring at a class list –
+ideal for the first weeks with new classes.
 
 Import your classes from **WebUntis**, a **CSV/Excel** file or just type the
 names. Everything stays on your phone.
@@ -24,7 +25,7 @@ names. Everything stays on your phone.
 </div>
 <div class="pics" markdown>
 ![Class 3B with photos and learning progress](assets/screenshots/class.png){ .shot }
-![Millionaire game](assets/screenshots/game-millionaire.png){ .shot }
+![Million Quiz game](assets/screenshots/game-millionaire.png){ .shot }
 </div>
 </div>
 
@@ -43,7 +44,7 @@ names. Everything stays on your phone.
 
     ---
 
-    Millionaire, Memory, Who is it?, Blitz, Reveal, Type it and Flashcards –
+    Million Quiz, Pairs, Who is it?, Blitz, Reveal, Type it and Flashcards –
     face → name and name → face.
 
     [:octicons-arrow-right-24: Games](user-guide/games.md)
@@ -73,7 +74,7 @@ names. Everything stays on your phone.
     No account, no cloud, no backend. Names and photos live only in the app's
     private storage on your phone.
 
-    [:octicons-arrow-right-24: Settings & privacy](user-guide/settings.md)
+    [:octicons-arrow-right-24: Privacy policy](legal/privacy.md)
 
 -   :material-translate: **German & English**
 
@@ -87,6 +88,11 @@ names. Everything stays on your phone.
 
 !!! example "Just want to look around?"
 
-    Download the made-up [demo class](user-guide/demo-class.md) – 28 comic
-    students with photos – and import it into the app. Every screenshot in this
-    documentation was made with it.
+    Load the made-up [demo class](user-guide/demo-class.md) – 28 comic
+    students with photos – with one tap: **Try it with demo classes first** on
+    the empty home screen, or **+ → Load demo classes**. Every screenshot in
+    this documentation was made with it.
+
+<small>nameIT is an independent app and not affiliated with or endorsed by
+Untis GmbH. Untis and WebUntis are trademarks of Untis GmbH.
+[Legal notice](legal/notice.md)</small>

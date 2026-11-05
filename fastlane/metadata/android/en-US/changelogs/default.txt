@@ -1,0 +1,1 @@
+First version on Google Play: seven learning games, import from a file, a list of names or WebUntis, demo classes, stats and badges.

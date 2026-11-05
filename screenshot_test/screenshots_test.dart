@@ -43,10 +43,19 @@ import 'package:provider/provider.dart';
 /// `--dart-define=SHOT_LOCALE=de`.
 const locale = String.fromEnvironment('SHOT_LOCALE', defaultValue: 'en');
 
-/// Phone screen: 393 × 852 logical pixels (a typical current phone) at 2.5×
-/// → 983 × 2130 PNGs.
-const logicalSize = Size(393, 852);
-const pixelRatio = 2.5;
+/// Which pictures to render (`--dart-define=SHOT_SET=store`):
+///   docs  – every screen for the documentation, 393 × 852 at 2.5× → 983 × 2130,
+///           into docs/assets/screenshots/
+///   store – the Google Play set, 9:16 at 1080 × 1920 (Play allows at most 2:1),
+///           into build/store/<locale>/; tool/store/compose.py adds captions.
+const shotSet = String.fromEnvironment('SHOT_SET', defaultValue: 'docs');
+const _isStore = shotSet == 'store';
+
+/// Screens in the store set, in store order.
+const storeShots = ['class', 'game-millionaire', 'game-who-is-it', 'game-type', 'result', 'stats', 'import-file'];
+
+const logicalSize = _isStore ? Size(360, 640) : Size(393, 852);
+const pixelRatio = _isStore ? 3.0 : 2.5;
 
 /// Layout overflows found while rendering. Reported at the end instead of
 /// failing the run, so one cut-off label doesn't block all screenshots.
@@ -118,7 +127,7 @@ void main() {
     await shoot(tester, store, StudentScreen(classId: cls3b.id, student: lena), 'student');
 
     // Stats is a long page: render it taller so badges are on the picture.
-    tester.view.physicalSize = Size(logicalSize.width, 1700) * pixelRatio;
+    if (!_isStore) tester.view.physicalSize = Size(logicalSize.width, 1700) * pixelRatio;
     await shoot(tester, store, const StatsScreen(), 'stats');
     tester.view.physicalSize = logicalSize * pixelRatio;
 
@@ -207,6 +216,7 @@ Future<void> shoot(
   Future<void> Function(WidgetTester)? before,
   Duration wait = const Duration(milliseconds: 1200),
 }) async {
+  if (_isStore && !storeShots.contains(name)) return;
   _currentShot = name;
   _log('rendering $name');
   // A new app per screenshot, so routes and state never leak between pictures.
@@ -239,7 +249,8 @@ Future<void> shoot(
   } else {
     await _settle(tester, wait);
   }
-  await expectLater(find.byKey(_shotKey), matchesGoldenFile('../docs/assets/screenshots/$name.png'));
+  final out = _isStore ? '../build/store/$locale/$name.png' : '../docs/assets/screenshots/$name.png';
+  await expectLater(find.byKey(_shotKey), matchesGoldenFile(out));
 
   // Let delayed game callbacks finish while the screen is still mounted.
   await tester.pump(const Duration(seconds: 2));

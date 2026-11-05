@@ -4,7 +4,11 @@ site_url: https://lukasdiem.github.io/nameit/
 repo_url: https://github.com/lukasdiem/nameit
 repo_name: lukasdiem/nameit
 edit_uri: edit/main/docs/
-copyright: nameIT · all names and faces in this documentation are made up
+copyright: >
+  nameIT · not affiliated with Untis GmbH · all names and faces here are made up ·
+  <a href="https://lukasdiem.github.io/nameit/legal/privacy/">Datenschutz / Privacy</a> ·
+  <a href="https://lukasdiem.github.io/nameit/legal/terms/">Nutzungsbedingungen / Terms</a> ·
+  <a href="https://lukasdiem.github.io/nameit/legal/notice/">Impressum</a>
 
 theme:
   name: material
@@ -27,9 +31,10 @@ theme:
       toggle:
         icon: material/weather-sunny
         name: Light mode
-  font:
-    text: Nunito
-    code: JetBrains Mono
+  # No web fonts: Material would load them from Google's servers, which sends
+  # every visitor's IP address to Google (a GDPR problem in the EU). The
+  # system font stack in extra.css is used instead.
+  font: false
   features:
     - navigation.sections
     - navigation.instant
@@ -83,3 +88,8 @@ nav:
       - Building & releases: developers/building.md
       - Code tour: developers/architecture.md
       - Docs & screenshots: developers/docs-and-screenshots.md
+      - Google Play release: developers/play-store.md
+  - Legal:
+      - Datenschutz / Privacy: legal/privacy.md
+      - Nutzungsbedingungen / Terms: legal/terms.md
+      - Impressum / Legal notice: legal/notice.md

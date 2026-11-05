@@ -36,8 +36,8 @@ New badges are announced on the result screen after a game.
 | :material-fire: **Flame** | Practise 7 days in a row. |
 | :material-fire-alert: **Fireworks** | Practise 30 days in a row. |
 | :material-check-decagram: **Flawless** | Answer at least 8 questions in a game without a mistake. |
-| :material-trophy: **Millionaire** | Win the million in Millionaire. |
-| :material-view-grid: **Elephant memory** | Solve a Memory with at most 2 extra moves. |
+| :material-trophy: **Millionaire** | Win the million in Million Quiz. |
+| :material-view-grid: **Elephant memory** | Find all pairs with at most 2 extra moves. |
 | :material-lightning-bolt: **Quick thinker** | Score 30 points in Blitz. |
 | :material-keyboard: **Typing pro** | Type every first name right in one round. |
 | :material-account-group: **Name memory** | Master 25 students. |

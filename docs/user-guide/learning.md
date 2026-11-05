@@ -43,20 +43,24 @@ class** – the names you would actually confuse.
 
 | Game | What is recorded |
 |---|---|
-| Millionaire, Who is it?, Reveal, Type it, Blitz | every answer |
-| Memory | a pair found without a wrong match before counts as correct |
+| Million Quiz, Who is it?, Reveal, Type it, Blitz | every answer |
+| Pairs | a pair found without a wrong match before counts as correct |
 | Flashcards | only your **first** rating of each card per round |
 
 ## XP and streak
 
 * Correct answers give **XP** – how much depends on the game (Reveal pays
-  more for early guesses).
+  more for early guesses). XP count per **school year** (1 August to
+  31 July); the home screen shows this school year's.
 * Answer at least one question on a day and your **streak** goes up. Miss a
   day and it starts again at 1.
 
-Both are shown on the home screen and in [Stats](stats.md).
+Both are shown on the home screen and in [Stats](stats.md), where you can
+also look back at earlier school years. The streak doesn't reset with a new
+school year.
 
 ## Starting over
 
 **Settings → Reset learning progress** sets every student back to level 0
-and clears XP, streak, history and badges. Classes and photos stay.
+and clears XP, streak, history and badges – for all school years. Classes and
+photos stay.

@@ -35,7 +35,14 @@ class GameShell extends StatelessWidget {
         title: Row(children: [
           Icon(mode.icon, color: mode.color),
           const SizedBox(width: 8),
-          Flexible(child: Text(context.tr(modeKey), overflow: TextOverflow.ellipsis)),
+          // Shrinks a long name next to buttons like "Walk away" instead of cutting it off.
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(context.tr(modeKey)),
+            ),
+          ),
         ]),
         actions: [if (trailing != null) Padding(padding: const EdgeInsets.only(right: 16), child: trailing)],
         bottom: progress == null
