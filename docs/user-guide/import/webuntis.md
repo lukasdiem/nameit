@@ -47,7 +47,7 @@ if your school stores them – their photos.
 
 After the first successful sign-in nameIT keeps only the **app key** in the
 phone's secure storage (Android Keystore / iOS Keychain) and signs in
-automatically next time. **Sign out** deletes it.
+automatically next time. **Sign out** deletes it again.
 
 ### Several schools or accounts { #accounts }
 

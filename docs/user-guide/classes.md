@@ -21,7 +21,8 @@ The **flame** and **star** at the top are your daily streak and this school
 year's XP. Tap them
 to open [Stats & badges](stats.md). The gear opens [Settings](settings.md).
 
-**+** opens the menu to import data or create a school year or class by hand.
+**+** opens a menu to **import data**, **load the demo classes**
+([details](demo-class.md)) or create a school year or class by hand.
 The **⋯** next to a school year adds a class to it, renames it or deletes it
 (including all its classes, photos and progress).
 

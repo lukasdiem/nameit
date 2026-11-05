@@ -94,6 +94,10 @@ it is.
 **60 seconds**: a photo and a name – does it match? Tap ✓ or ✗ as fast as
 you can.
 
+After each answer a big green **✓** or red **✕** pops up on the photo for a
+moment, then the next student appears. Taps during that moment don't count,
+so a double tap can't skip a face.
+
 Right answers in a row build a **combo**: from 5 in a row your points count
 double, from 10 triple. A wrong answer resets the combo. 30 points unlock
 *Quick thinker*.
