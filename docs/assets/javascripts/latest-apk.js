@@ -5,17 +5,11 @@
 //
 // Prefers the newest full release, falls back to the newest pre-release. The
 // href in the markup (the releases page) stays as fallback if GitHub can't be
-// reached. One API call per browser session (GitHub allows 60 per hour per IP).
+// reached. Nothing is stored in the browser.
 (function () {
   const REPO = "lukasdiem/nameit";
-  const CACHE_KEY = "nameit-latest-apk";
 
   async function latestApk() {
-    try {
-      const cached = sessionStorage.getItem(CACHE_KEY);
-      if (cached) return JSON.parse(cached);
-    } catch (_) {}
-
     const res = await fetch(`https://api.github.com/repos/${REPO}/releases?per_page=30`, {
       headers: { Accept: "application/vnd.github+json" },
     });
@@ -28,15 +22,11 @@
     const asset =
       release.assets.find((a) => a.name === "nameit.apk") ||
       release.assets.find((a) => a.name.endsWith(".apk"));
-    const info = {
+    return {
       url: asset.browser_download_url,
       label: release.name || release.tag_name,
       prerelease: release.prerelease,
     };
-    try {
-      sessionStorage.setItem(CACHE_KEY, JSON.stringify(info));
-    } catch (_) {}
-    return info;
   }
 
   function apply() {

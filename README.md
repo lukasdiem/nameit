@@ -1,6 +1,13 @@
 # nameIT
 
-App to memorize student names with WebUntis import.
+An app **for teachers** to learn their students' names and faces with short
+games. Classes can be imported from WebUntis, a CSV/Excel file or typed in;
+everything stays on the phone.
+
+> nameIT is an independent project, not affiliated with or endorsed by Untis
+> GmbH. Untis and WebUntis are trademarks of Untis GmbH.
+> [Privacy policy](https://lukasdiem.github.io/nameit/legal/privacy/) ·
+> [Terms of use & disclaimer](https://lukasdiem.github.io/nameit/legal/terms/)
 
 📲 **Download:** [newest release (APK)](https://github.com/lukasdiem/nameit/releases/latest/download/nameit.apk)
 · [all builds](https://github.com/lukasdiem/nameit/releases)
@@ -79,8 +86,8 @@ The logo is a lowercase "n" that is also a person. Icon sources are in
 
 | Mode | Direction | Idea |
 |---|---|---|
-| Millionenshow | face → name | 15 questions, ladder to € 1.000.000, safety levels at € 500 and € 15.000, jokers 50:50 / audience / initials, wrong answer ends the run |
-| Memory | both | find photo + name pairs; fewer moves = more stars |
+| Million Quiz (Millionenquiz) | face → name | 15 questions, ladder to € 1.000.000, safety levels at € 500 and € 15.000, jokers 50:50 / audience / initials, wrong answer ends the run |
+| Pairs (Paare finden) | both | find photo + name pairs; fewer moves = more stars |
 | Wer ist das? | name → face | one name, four faces |
 | Blitzrunde | face ↔ name | 60 s yes/no, combo multiplier ×2 / ×3 |
 | Aufdecken | face → name | photo uncovers tile by tile; early answers score more |
@@ -96,7 +103,20 @@ early bird / night owl …). New badges are announced on the result screen.
 
 ## WebUntis
 
-* Login, school years, classes: official JSON-RPC API (`authenticate`, `getSchoolyears`, `getKlassen`).
+Which interfaces are used, and how official they are, matters for publishing
+(see [Google Play release](docs/developers/play-store.md#untis)):
+
+| Interface | Used for | Status |
+|---|---|---|
+| JSON-RPC `jsonrpc.do` | login, school years, classes, `getStudents` | documented by Untis (WebUntis JSON-RPC API) |
+| `api/public/timetable/weekly/pageconfig`, `api/token/new` | class list of your own class | web client interface, undocumented |
+| Untis Mobile `jsonrpc_intern.do` | app-key login, your lessons' attendance lists | mobile app interface, undocumented |
+| `image.do` | student photos | web client interface, undocumented |
+| `schoolsearch.webuntis.com` | school display name | public school search, undocumented |
+
+Details:
+
+* Login, school years, classes: the documented JSON-RPC API (`authenticate`, `getSchoolyears`, `getKlassen`).
 * Students of a class, in this order:
   1. The web timetable's student list (`pageconfig` with `filter.klasseId`). WebUntis only
      allows this for the class you are Klassenvorstand of, and then gives the full class.
@@ -120,4 +140,7 @@ signs in automatically; if that fails it shows the first-time page again. *Sign 
 
 Names and photos of students are personal data (GDPR). The app has no backend:
 everything lives in the app's private storage and is removed with
-*Settings → Delete all data* or by uninstalling.
+*Settings → Delete all data* or by uninstalling. The QR scanner (Google ML Kit)
+sends technical usage data to Google. Full text:
+[privacy policy](https://lukasdiem.github.io/nameit/legal/privacy/) (sources in
+`docs/legal/`).

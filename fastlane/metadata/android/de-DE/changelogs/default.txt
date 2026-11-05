@@ -1,0 +1,1 @@
+Erste Version im Google Play Store: sieben Lernspiele, Import aus Datei, Namensliste oder WebUntis, Demo-Klassen, Statistik und Abzeichen.

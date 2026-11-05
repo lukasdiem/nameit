@@ -12,6 +12,7 @@ on:
       - 'lib/**'
       - 'screenshot_test/**'
       - 'docs/demo/**'
+      - 'tool/store/compose.py'
       - '.github/workflows/screenshots.yml'
   workflow_dispatch:
 
@@ -39,16 +40,28 @@ jobs:
       - name: Render screenshots
         run: flutter test --update-goldens screenshot_test/
 
+      # Google Play set: 9:16, German and English, then framed with captions
+      # into fastlane/metadata/android/<locale>/images/phoneScreenshots/.
+      - name: Render store screenshots
+        run: |
+          for lang in de en; do
+            flutter test --update-goldens --dart-define=SHOT_SET=store --dart-define=SHOT_LOCALE=$lang screenshot_test/
+          done
+          pip install --quiet pillow
+          python3 tool/store/compose.py --font "$FLUTTER_ROOT/bin/cache/artifacts/material_fonts/Roboto-Bold.ttf"
+
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: screenshots
-          path: docs/assets/screenshots/
+          path: |
+            docs/assets/screenshots/
+            fastlane/metadata/android/*/images/phoneScreenshots/
           retention-days: 14
 
       - name: Commit changed screenshots
         run: |
-          git add docs/assets/screenshots
+          git add docs/assets/screenshots fastlane/metadata/android
           if git diff --cached --quiet; then
             echo "Screenshots unchanged."
             exit 0

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../data/app_store.dart';
 import '../../l10n/strings.dart';
+import '../../legal.dart';
 import '../../services/webuntis_service.dart';
 import '../dialogs.dart';
 
@@ -88,6 +90,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
           padding: const EdgeInsets.all(16),
           child: Text(context.tr('privacyNote'), style: muted),
         ),
+        _Header(context.tr('legal')),
+        _LinkTile(icon: Icons.privacy_tip_outlined, label: context.tr('privacyPolicy'), url: LegalLinks.privacy),
+        _LinkTile(icon: Icons.gavel_outlined, label: context.tr('termsOfUse'), url: LegalLinks.terms),
+        _LinkTile(icon: Icons.info_outline, label: context.tr('legalNotice'), url: LegalLinks.notice),
+        ListTile(
+          leading: const Icon(Icons.description_outlined),
+          title: Text(context.tr('licenses')),
+          onTap: () => showLicensePage(context: context, applicationName: 'nameIT'),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          child: Text(context.tr('untisNote'), style: muted),
+        ),
         // Version name from pubspec.yaml, build number from the CI run.
         FutureBuilder<PackageInfo>(
           future: PackageInfo.fromPlatform(),
@@ -115,5 +130,27 @@ class _Header extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
         child: Text(text,
             style: TextStyle(fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.primary)),
+      );
+}
+
+/// Opens a page of the documentation site in the browser.
+class _LinkTile extends StatelessWidget {
+  const _LinkTile({required this.icon, required this.label, required this.url});
+  final IconData icon;
+  final String label;
+  final String url;
+
+  @override
+  Widget build(BuildContext context) => ListTile(
+        leading: Icon(icon),
+        title: Text(label),
+        trailing: const Icon(Icons.open_in_new, size: 18),
+        onTap: () async {
+          var ok = false;
+          try {
+            ok = await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+          } catch (_) {}
+          if (!ok && context.mounted) toast(context, context.tr('linkError', {'url': url}));
+        },
       );
 }

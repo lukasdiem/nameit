@@ -3,6 +3,16 @@
 If your school uses WebUntis, nameIT can fetch your classes, students and –
 if your school stores them – their photos.
 
+!!! info "Before you import"
+
+    * **Ask your school first.** You are responsible for the student data you
+      store on your phone; whether you may copy names and photos from WebUntis
+      is up to your school and its data protection rules.
+    * nameIT is an **independent app**, not affiliated with or endorsed by
+      Untis GmbH. It uses your own WebUntis login, including interfaces that
+      Untis doesn't officially document for other apps, so the import may stop
+      working if Untis changes them. The [file import](file.md) always works.
+
 <div class="side" markdown>
 <div markdown>
 

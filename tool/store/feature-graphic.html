@@ -1,0 +1,49 @@
+<!doctype html>
+<!-- Google Play feature graphic, 1024 × 500. Rendered by tool/store/render_graphics.sh.
+     ?lang=de or ?lang=en picks the tagline. No other brands, no claims. -->
+<html><head><meta charset="utf-8">
+<style>
+  html, body { margin: 0; width: 1024px; height: 500px; overflow: hidden; }
+  body {
+    font-family: "Inter", "Roboto", system-ui, sans-serif;
+    background: radial-gradient(circle at 92% 8%, #4FE0B0 0, rgba(79,224,176,0) 32%),
+                linear-gradient(160deg, #7C2AD6 0%, #4A168C 100%);
+    color: #fff; position: relative;
+  }
+  .left { position: absolute; left: 64px; top: 0; bottom: 0; width: 470px;
+          display: flex; flex-direction: column; justify-content: center; }
+  .brand { display: flex; align-items: center; gap: 18px; }
+  .brand svg { width: 86px; height: 86px; filter: drop-shadow(0 6px 14px rgba(20,10,40,.35)); }
+  .word { font-size: 72px; font-weight: 900; letter-spacing: -2px; }
+  .word .it { color: #4FE0B0; }
+  .tag { font-size: 34px; font-weight: 700; line-height: 1.2; margin-top: 26px; }
+  .sub { font-size: 21px; font-weight: 500; opacity: .85; margin-top: 14px; }
+  .faces { position: absolute; right: 40px; top: 50%; transform: translateY(-50%);
+           display: grid; grid-template-columns: repeat(3, 128px); gap: 16px; }
+  .faces img { width: 128px; height: 128px; border-radius: 28px; border: 5px solid #1E1433;
+               box-shadow: 0 10px 24px rgba(20,10,40,.35); }
+  .faces img:nth-child(3n+2) { transform: translateY(26px); }
+</style></head>
+<body>
+  <div class="left">
+    <div class="brand">
+      <svg viewBox="0 0 100 100"><rect width="100" height="100" rx="24" fill="#fff"/>
+        <g transform="translate(14 14) scale(0.72)"><path d="M28 88 V60 A22 22 0 0 1 72 60 V88" fill="none" stroke="#7C2AD6" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/><circle cx="50" cy="15" r="11" fill="#4FE0B0"/></g></svg>
+      <div class="word">name<span class="it">IT</span></div>
+    </div>
+    <div class="tag" id="tag"></div>
+    <div class="sub" id="sub"></div>
+  </div>
+  <div class="faces">
+    <img src="../../docs/demo/avatars/lena-gruber.jpg"><img src="../../docs/demo/avatars/amir-kaya.jpg"><img src="../../docs/demo/avatars/zeynep-yilmaz.jpg">
+    <img src="../../docs/demo/avatars/felix-huber.jpg"><img src="../../docs/demo/avatars/amara-okafor.jpg"><img src="../../docs/demo/avatars/paul-hofer.jpg">
+  </div>
+<script>
+  const t = {
+    de: ["Namen & Gesichter deiner Klassen – spielerisch gelernt", "Für Lehrkräfte · Daten bleiben auf dem Gerät"],
+    en: ["Learn your students’ names and faces – by playing", "For teachers · data stays on the device"],
+  }[new URLSearchParams(location.search).get("lang") || "en"];
+  document.getElementById("tag").textContent = t[0];
+  document.getElementById("sub").textContent = t[1];
+</script>
+</body></html>

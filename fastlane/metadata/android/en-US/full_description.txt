@@ -1,0 +1,31 @@
+New classes, lots of new faces? nameIT helps teachers learn their students' names quickly and for good – with short games instead of class lists.
+
+<b>Who is it for?</b>
+nameIT is made for teachers who want to get to know their classes – especially in the first weeks of a school year. It is not meant for students.
+
+<b>Seven games</b>
+• Million Quiz – a photo, four names, 15 questions to the million
+• Pairs – match each photo with its name
+• Who is it? – given a name, tap the right face
+• Blitz – 60 seconds: does the name fit the face?
+• Reveal – the photo uncovers slowly
+• Type it – write the first name, no options
+• Flashcards – learn calmly and rate yourself honestly
+
+<b>Practice where it matters</b>
+Every answer updates that student's learning level. Faces you don't know yet, or haven't seen for a while, come up more often. Stats, a daily streak and 15 badges show your progress.
+
+<b>Set up your classes</b>
+• CSV or Excel file with first name, last name and class
+• Type or paste names
+• Import from WebUntis* with your own login – optionally with the photos your school keeps there
+• Take photos with the camera or pick them from the gallery
+• Demo classes with invented, drawn people to try everything out
+
+<b>Privacy</b>
+nameIT has no server of its own, no account, no ads and no tracking. Names, photos and progress stay on your device only. Please only import student data if your school allows it – you or your school are responsible for this data.
+
+Privacy policy: https://lukasdiem.github.io/nameit/legal/privacy/
+Guide: https://lukasdiem.github.io/nameit/
+
+* nameIT is an independent app and not affiliated with Untis GmbH. Untis and WebUntis are trademarks of Untis GmbH. The WebUntis import needs a login from your school and may depend on changes to WebUntis.

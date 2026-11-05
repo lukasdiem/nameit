@@ -1,5 +1,8 @@
 /* nameIT brand colours (see lib/ui/theme.dart) */
 :root {
+  /* System fonts only – no requests to font services (see mkdocs.yml). */
+  --md-text-font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --md-code-font-family: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
   --nameit-violet: #7C2AD6;
   --nameit-mint: #4FE0B0;
   --nameit-amber: #FFB627;

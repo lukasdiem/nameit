@@ -43,8 +43,8 @@ class** – the names you would actually confuse.
 
 | Game | What is recorded |
 |---|---|
-| Millionaire, Who is it?, Reveal, Type it, Blitz | every answer |
-| Memory | a pair found without a wrong match before counts as correct |
+| Million Quiz, Who is it?, Reveal, Type it, Blitz | every answer |
+| Pairs | a pair found without a wrong match before counts as correct |
 | Flashcards | only your **first** rating of each card per round |
 
 ## XP and streak

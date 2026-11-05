@@ -35,6 +35,15 @@ jobs:
 
       - run: pip install -r docs/requirements.txt
 
+      # The legal pages carry [[FILL IN: …]] placeholders for the provider's
+      # name and contact. Never publish them half-filled.
+      - name: Legal pages complete
+        run: |
+          if grep -rn '\[\[FILL IN' docs/; then
+            echo "::error::Fill in the [[FILL IN: …]] placeholders above before publishing."
+            exit 1
+          fi
+
       # --strict turns broken links and missing images into errors.
       - run: mkdocs build --strict
 
