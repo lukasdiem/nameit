@@ -94,12 +94,7 @@ class ClassScreen extends StatelessWidget {
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
             sliver: SliverGrid.builder(
-              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: 130,
-                mainAxisSpacing: 14,
-                crossAxisSpacing: 12,
-                childAspectRatio: 0.66, // photo + two names + level dots
-              ),
+              gridDelegate: _StudentGridDelegate(textScale: MediaQuery.textScalerOf(context).scale(1)),
               itemCount: students.length,
               itemBuilder: (ctx, i) => _StudentTile(student: students[i]),
             ),
@@ -133,4 +128,36 @@ class _StudentTile extends StatelessWidget {
           LevelDots(student.level),
         ]),
       );
+}
+
+/// Square photo plus a fixed band for two names and the level dots. A fixed
+/// aspect ratio can't do this: on narrow phones the band got too short and
+/// overflowed, on wide ones it left a gap.
+class _StudentGridDelegate extends SliverGridDelegate {
+  static const maxTileWidth = 130.0, spacing = 12.0, rowSpacing = 14.0;
+
+  /// Names (2 lines incl. the large-text setting) + dots + gaps below the photo.
+  static double _band(double textScale) => 6 + 22 * textScale + 18 * textScale + 4 + 6 + 4;
+
+  _StudentGridDelegate({this.textScale = 1});
+  final double textScale;
+
+  @override
+  SliverGridLayout getLayout(SliverConstraints constraints) {
+    final width = constraints.crossAxisExtent;
+    final columns = ((width + spacing) / (maxTileWidth + spacing)).ceil().clamp(1, 99);
+    final tileWidth = (width - spacing * (columns - 1)) / columns;
+    final tileHeight = tileWidth + _band(textScale);
+    return SliverGridRegularTileLayout(
+      crossAxisCount: columns,
+      mainAxisStride: tileHeight + rowSpacing,
+      crossAxisStride: tileWidth + spacing,
+      childMainAxisExtent: tileHeight,
+      childCrossAxisExtent: tileWidth,
+      reverseCrossAxis: false,
+    );
+  }
+
+  @override
+  bool shouldRelayout(covariant _StudentGridDelegate old) => old.textScale != textScale;
 }
