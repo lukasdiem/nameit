@@ -101,7 +101,8 @@ Die Daten bleiben auf deinem Gerät, bis du sie löschst:
 * einzelne Schüler:innen, Klassen oder Schuljahre in der App,
 * **Einstellungen → Lernfortschritt zurücksetzen** bzw. **Alle Daten
   löschen**,
-* **Abmelden** beim WebUntis-Import löscht den gespeicherten Zugang,
+* **Abmelden** beim WebUntis-Import löscht den gespeicherten Zugang des
+  ausgewählten Kontos,
 * durch **Deinstallieren** der App wird alles entfernt.
 
 Lösche die Daten deiner Schüler:innen, sobald du sie nicht mehr brauchst –
@@ -117,11 +118,12 @@ IP-Adresse in Server-Protokollen; dabei kann es zu einer Übermittlung in die
 USA kommen. Siehe die [Datenschutzerklärung von
 GitHub](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement).
 
-* Der Button **„App herunterladen“** fragt beim Laden der Seite in deinem
-  Browser bei `api.github.com` die neueste Version ab.
+* Der Button **„App herunterladen“** und der GitHub-Link oben rechts fragen
+  beim Laden der Seite aus deinem Browser bei `api.github.com` die neueste
+  Version bzw. Angaben zum Projekt ab.
 * Die Website verwendet **keine Cookies, keine Analyse-Tools und keine
-  externen Schriftarten**. Wenn du zwischen hellem und dunklem Design
-  wechselst, merkt sich dein Browser diese Auswahl lokal.
+  externen Schriftarten**. Einstellungen wie das helle oder dunkle Design
+  speichert dein Browser lokal.
 
 ### 7. Kinder
 
@@ -228,7 +230,8 @@ The data stays on your device until you delete it:
 
 * single students, classes or school years in the app,
 * **Settings → Reset learning progress** or **Delete all data**,
-* **Sign out** on the WebUntis import deletes the stored login,
+* **Sign out** on the WebUntis import deletes the stored login of the
+  selected account,
 * **uninstalling** the app removes everything.
 
 Delete your students' data once you no longer need it – e.g. at the end of
@@ -244,11 +247,11 @@ address in server logs; this may involve a transfer to the USA. See
 [GitHub's privacy
 statement](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement).
 
-* The **Download the app** button asks `api.github.com` for the newest
-  version from your browser when the page loads.
-* The website uses **no cookies, no analytics and no external fonts**. If
-  you switch between light and dark design, your browser remembers that
-  choice locally.
+* The **Download the app** button and the GitHub link at the top right ask
+  `api.github.com` for the newest version and project details from your
+  browser when the page loads.
+* The website uses **no cookies, no analytics and no external fonts**.
+  Settings such as light or dark design are stored locally by your browser.
 
 ### 7. Children
 
