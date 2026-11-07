@@ -87,6 +87,7 @@ names. Everything stays on your phone.
 
 !!! example "Just want to look around?"
 
-    Download the made-up [demo class](user-guide/demo-class.md) – 28 comic
-    students with photos – and import it into the app. Every screenshot in this
-    documentation was made with it.
+    Load the made-up [demo class](user-guide/demo-class.md) – 28 comic
+    students with photos – with one tap: **Try it with demo classes first** on
+    the empty home screen, or **+ → Load demo classes**. Every screenshot in
+    this documentation was made with it.

@@ -12,7 +12,9 @@ falls back to English). **Deutsch** and **English** force one language.
 
 ## WebUntis
 
-Shows the server, school and user of your last WebUntis sign-in.
+Shows the server, school and user of your last WebUntis sign-in. Adding,
+switching and signing out of accounts happens on the import screen – see
+[Several schools or accounts](import/webuntis.md#accounts).
 
 ### Custom photo address { #custom-photo-address }
 
@@ -45,10 +47,14 @@ that they never leave your phone:
 * **No backend, no account, no analytics.** There is no nameIT server.
 * Data lives in the app's **private storage** – one data file plus a folder of
   photos. Other apps can't read it.
-* The only network connection is to **your school's WebUntis server**, and
-  only when you import.
-* The WebUntis **app key** is kept in the Android Keystore / iOS Keychain.
-  **Sign out** on the import screen deletes it.
+* Network connections go only to **your school's WebUntis server** when you
+  import, and to WebUntis' public school search for the school's display
+  name.
+* The WebUntis **app keys** – one per connected account – are kept in the
+  Android Keystore / iOS Keychain. **Sign out** on the import screen deletes
+  the selected one.
+* A screenshot of the WebUntis QR code contains your app key – delete it from
+  the gallery after signing in ([one-phone sign-in](import/webuntis.md)).
 * **Delete all data** or **uninstalling** the app removes everything.
 
 !!! warning "Check with your school"

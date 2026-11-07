@@ -14,8 +14,9 @@ lib/
   services/
     webuntis_service.dart        WebUntis login, years, classes, students, photos
     untis_mobile_api.dart        Untis Mobile interface (app key / TOTP, timetable, attendance lists)
-    untis_credentials.dart       QR code parsing, secure storage of the app key
+    untis_credentials.dart       QR code parsing, several accounts (app keys) in secure storage
     file_import.dart             CSV / Excel parser (German + English headers)
+    demo_data.dart               loads the bundled demo class (docs/demo) into a "Demo" year
     photo_service.dart           camera / gallery
   ui/
     theme.dart                   brand colours, light + dark theme
@@ -29,16 +30,41 @@ lib/
 `AppStore` is the single source of truth, provided at the top of the widget
 tree with `provider`. Every change calls `notifyListeners()` and writes
 `nameit_data.json` in the app's documents folder (to a temp file first, then
-renamed, so a crash never leaves half a file).
+renamed, so a crash never leaves half a file). Saves are queued one after
+another, so quick successive changes – an import adding several classes –
+never race for the temp file.
 
 Photos are files in a `photos/` folder. A student stores only the **file
 name** – the absolute app folder can change on iOS between launches. Each new
 photo gets a new file name so Flutter's image cache never shows the old one.
 
+### Schools and school years
+
+* **School years** are shared by name across schools ("2026/27").
+* **Classes** remember the WebUntis school they came from (`school`, a
+  `server/school` key). Classes and students are matched per school on
+  re-import, so two schools' *3B* never mix. Display names for schools come
+  from WebUntis' public school search (`schools` map).
+* The home screen groups a year's classes by school only when there is more
+  than one (`classesBySchool()`).
+
+### Accounts
+
+`UntisCredentials` keeps a list of accounts in secure storage
+(`untis_accounts`) plus the active one (`untis_active`). Only app keys are
+stored; a password only if the server hands out no app key. The single login
+of earlier versions is moved into the list on first load.
+
 ## Learning
 
 * `recordAnswer()` – level +1 on a correct answer, −2 on a wrong one
   (0…5), updates XP, the per-day history and the streak.
+* Per-day history: `days["yyyy-mm-dd"] = [answers, correct, xp, games]`
+  (older two-value entries count 10 XP per correct answer).
+* Stats are per **school year**, 1 August to 31 July: `totalsIn(yearName)`
+  sums the days of that range, `xpThisYear` is shown on the home screen.
+  Year names without a year number (e.g. *Demo*) count as the current year.
+  Streak and badges are not per year.
 * `pickForPractice()` – weighted random choice without repetition. Weight =
   `(6 − level) × (1 + min(days unseen, 7) / 2)`.
 * `distractors()` – wrong options from the same class.
@@ -62,6 +88,9 @@ strings `<key>` and `<key>Sub` in `strings.dart`.
 | Secondary | `#4FE0B0` mint | logo head, progress; `#0E7A5A` where it carries white text |
 | Tertiary | `#FFB627` amber | stars and rewards only |
 | Ink | `#1E1433` | text |
+
+The version line at the end of Settings comes from `package_info_plus`
+(version name from `pubspec.yaml`, build number from CI).
 
 The logo is a lowercase "n" that is also a person. Icon sources (SVG masters
 and 1024 px PNGs) are in `assets/icon/`; in the app it is drawn in code

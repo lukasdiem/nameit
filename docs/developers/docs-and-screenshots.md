@@ -11,7 +11,7 @@ docs/
   index.md, user-guide/, developers/   the pages
   assets/screenshots/              rendered by CI – don't edit by hand
   assets/stylesheets/extra.css     brand colours, phone frames, layouts
-  demo/                            demo class: CSV + avatars (generated)
+  demo/                            demo class: CSV + avatars (generated, also bundled in the app)
 screenshot_test/screenshots_test.dart   renders the screenshots
 tool/demo/generate_demo.py         generates the demo class
 .github/workflows/
@@ -23,7 +23,9 @@ tool/demo/generate_demo.py         generates the demo class
 
 1. **Demo data** – `tool/demo/generate_demo.py` invents 28 students, draws a
    comic avatar for each and writes `docs/demo/demo-classes.csv` (same layout
-   as a WebUntis export) plus `avatars.zip`.
+   as a WebUntis export) plus `avatars.zip`. The same CSV and avatars are app
+   assets (`pubspec.yaml`), so **+ → Load demo classes** in the app shows
+   exactly what the documentation shows.
 2. **Screenshots** – `screenshot_test/screenshots_test.dart` is a Flutter
    widget test. It starts with an empty app folder, imports the CSV with the
    app's real `FileImporter`, attaches the avatars, fills in believable
@@ -105,7 +107,9 @@ python3 tool/demo/generate_demo.py
 ```
 
 The avatars are reproducible (fixed random seed), so unchanged students keep
-their faces.
+their faces. The app bundles every file in `docs/demo/avatars/`, and a test
+in `test/widget_test.dart` checks that each student in the CSV has its
+avatar – so a changed demo class also means a new APK build.
 
 ## Publishing
 

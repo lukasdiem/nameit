@@ -46,8 +46,9 @@ runs on every pull request and every push to `main`:
 | **build** | release APK for arm64, signed with the stored key, signature verified |
 | **release** | publishes the APK on GitHub (not for pull requests) |
 
-Changes to documentation only (`docs/`, `*.md`, `mkdocs.yml`, the demo data
-and screenshot test) don't start an APK build.
+Changes to documentation only (`docs/` pages and assets, `*.md`, `mkdocs.yml`,
+the screenshot test) don't start an APK build. The demo class in `docs/demo/`
+**does**, because it is bundled with the app.
 
 ## Versions
 
